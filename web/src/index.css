@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Roboto", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Custom scroll behavior and base font size reduction */
+html {
+  scroll-behavior: smooth;
+  font-size: 14px; /* Decreases all rem-based font sizes by 2px globally (16px base -> 14px base) */
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Custom scrollbar for dark backgrounds (like CMS sidebar) */
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Pricing Page Sticky Stacking Animation on scroll (works on standard laptop heights and up) */
+@media (min-width: 1024px) and (min-height: 600px) and (max-height: 879px) {
+  .pricing-section-sticky {
+    position: sticky !important;
+    top: 5rem !important; /* ~80px, perfectly aligned with the h-20 navbar */
+    min-height: calc(100vh - 5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1.5rem !important;
+    box-shadow: 0 -35px 60px -15px rgba(10, 36, 114, 0.16) !important;
+    border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
+  }
+
+  /* Make headers compact inside the sticky section so nothing gets cut off */
+  .pricing-section-sticky [id^="pricing-header-"] {
+    margin-bottom: 0.75rem !important;
+  }
+  .pricing-section-sticky h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.2 !important;
+  }
+  .pricing-section-sticky [id^="pricing-header-"] .w-9 {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+  .pricing-section-sticky [id^="pricing-header-"] .w-4\.5 {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+
+  /* Make the 4-column card grid fit nicely */
+  .pricing-section-sticky .grid {
+    gap: 0.75rem !important;
+  }
+
+  /* Compact the pricing cards */
+  .pricing-section-sticky [id^="pricing-card-"] {
+    padding: 0.75rem 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Reduce spacing inside pricing cards */
+  .pricing-section-sticky [id^="pricing-card-"] .text-center {
+    margin-top: 0.125rem !important;
+    margin-bottom: 0.125rem !important;
+  }
+
+  .pricing-section-sticky [id^="pricing-card-"] h3 {
+    font-size: 0.85rem !important;
+    margin-top: 0.125rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .pricing-section-sticky [id^="pricing-card-"] p {
+    font-size: 0.75rem !important;
+    min-height: 1.75rem !important;
+    margin-top: 0.125rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .pricing-section-sticky [id^="pricing-card-"] [id^="price-btn-"] {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .pricing-section-sticky [id^="pricing-card-"] ul {
+    margin-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .pricing-section-sticky [id^="pricing-card-"] li {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.25rem !important;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 880px) {
+  .pricing-section-sticky {
+    position: sticky !important;
+    top: 5rem !important; /* ~80px, perfectly aligned with the h-20 navbar */
+    min-height: calc(100vh - 5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding-top: 2.5rem !important;
+    padding-bottom: 3.5rem !important;
+    box-shadow: 0 -35px 60px -15px rgba(10, 36, 114, 0.16) !important;
+    border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
+  }
+
+  /* Gentle header styling for larger viewports */
+  .pricing-section-sticky [id^="pricing-header-"] {
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-none {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
