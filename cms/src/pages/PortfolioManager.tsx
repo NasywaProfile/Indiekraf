@@ -3,7 +3,6 @@ import { Plus, Pencil, Trash2, X, Save, Image, LayoutTemplate, Layers } from 'lu
 
 interface PortfolioItem {
   id?: number;
-  year: string;
   client: string;
   client_en: string;
   title: string;
@@ -21,7 +20,6 @@ interface PortfolioItem {
 }
 
 const emptyItem: PortfolioItem = {
-  year: new Date().getFullYear().toString(),
   client: '',
   client_en: '',
   title: '',
@@ -70,7 +68,7 @@ export default function PortfolioManager() {
       const res = await fetch('/api/portfolio/all', { headers });
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch { }
     setIsLoading(false);
   };
 
@@ -86,14 +84,14 @@ export default function PortfolioManager() {
       if (obj['portfolio_categories']) {
         try {
           setPortfolioCategories(JSON.parse(obj['portfolio_categories']));
-        } catch {}
+        } catch { }
       } else {
         setPortfolioCategories(defaultPortfolioTypes);
       }
-    } catch {}
+    } catch { }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     fetchItems();
     fetchSettings();
   }, []);
@@ -120,14 +118,14 @@ export default function PortfolioManager() {
         }
       }
       payload['portfolio_categories'] = JSON.stringify(portfolioCategories);
-      
+
       const res = await fetch('/api/settings', {
         method: 'PUT',
         headers,
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('Failed to save settings');
-      
+
       alert('Pengaturan Hero Berhasil Disimpan!');
     } catch (err) {
       alert('Gagal menyimpan pengaturan.');
@@ -155,7 +153,7 @@ export default function PortfolioManager() {
       if (data.url) {
         handleChangeSetting(`portfolio_hero_image_${side}`, data.url);
       }
-    } catch {}
+    } catch { }
     setUploadingHeroImg(null);
   };
 
@@ -170,7 +168,7 @@ export default function PortfolioManager() {
       await fetch(url, { method, headers, body: JSON.stringify(editItem) });
       setShowModal(false);
       fetchItems();
-    } catch {}
+    } catch { }
     setIsSaving(false);
   };
 
@@ -190,7 +188,7 @@ export default function PortfolioManager() {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.url) setEditItem(p => ({ ...p, image_url: data.url }));
-    } catch {}
+    } catch { }
     setUploadingImage(false);
   };
 
@@ -200,22 +198,20 @@ export default function PortfolioManager() {
       <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4">
         <button
           onClick={() => setActiveTab('hero')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
-            activeTab === 'hero'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'hero'
               ? 'bg-[#0A2472] text-white shadow-md'
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
-          }`}
+            }`}
         >
           <LayoutTemplate className="w-4 h-4 text-indigo-400" />
           1. Hero Banner
         </button>
         <button
           onClick={() => setActiveTab('plans')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
-            activeTab === 'plans'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'plans'
               ? 'bg-[#0A2472] text-white shadow-md'
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
-          }`}
+            }`}
         >
           <Layers className="w-4 h-4 text-indigo-400" />
           2. Daftar Portofolio
@@ -287,7 +283,7 @@ export default function PortfolioManager() {
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-              
+
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Deskripsi (Bahasa Indonesia)</label>
                 <textarea
@@ -344,27 +340,27 @@ export default function PortfolioManager() {
                 <div className="space-y-3">
                   {portfolioCategories.map((cat, i) => (
                     <div key={i} className="flex flex-col sm:flex-row items-center gap-3">
-                      <input 
-                        value={cat.id} 
+                      <input
+                        value={cat.id}
                         onChange={e => updateCategory(i, 'id', e.target.value)}
-                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100" 
-                        placeholder={`ID (cth: website)`} 
+                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        placeholder={`ID (cth: website)`}
                       />
-                      <input 
-                        value={cat.label_id} 
+                      <input
+                        value={cat.label_id}
                         onChange={e => updateCategory(i, 'label_id', e.target.value)}
-                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100" 
-                        placeholder={`Label ID (cth: Website & Apps)`} 
+                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        placeholder={`Label ID (cth: Website & Apps)`}
                       />
-                      <input 
-                        value={cat.label_en} 
+                      <input
+                        value={cat.label_en}
                         onChange={e => updateCategory(i, 'label_en', e.target.value)}
-                        className="flex-1 w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100" 
-                        placeholder={`Label EN (cth: Website & Apps)`} 
+                        className="flex-1 w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        placeholder={`Label EN (cth: Website & Apps)`}
                       />
-                      <button 
-                        type="button" 
-                        onClick={() => removeCategory(i)} 
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(i)}
                         className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 transition-colors shrink-0"
                         title="Hapus Kategori"
                       >
@@ -372,9 +368,9 @@ export default function PortfolioManager() {
                       </button>
                     </div>
                   ))}
-                  <button 
-                    type="button" 
-                    onClick={addCategory} 
+                  <button
+                    type="button"
+                    onClick={addCategory}
                     className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-bold rounded-xl transition-colors mt-2"
                   >
                     <Plus className="w-4 h-4" /> Tambah Kategori
@@ -400,68 +396,66 @@ export default function PortfolioManager() {
 
       {activeTab === 'plans' && (
         <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#0A2472]">Portofolio</h1>
-          <p className="text-slate-400 text-sm mt-1">{items.length} item portofolio</p>
-        </div>
-        <button
-          id="btn-create-portfolio"
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#0A2472] text-white text-xs font-bold rounded-xl hover:bg-[#071d5a] transition-all shadow-lg active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          Portofolio Baru
-        </button>
-      </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-extrabold text-[#0A2472]">Portofolio</h1>
+              <p className="text-slate-400 text-sm mt-1">{items.length} item portofolio</p>
+            </div>
+            <button
+              id="btn-create-portfolio"
+              onClick={openCreate}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#0A2472] text-white text-xs font-bold rounded-xl hover:bg-[#071d5a] transition-all shadow-lg active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              Portofolio Baru
+            </button>
+          </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center text-slate-400 text-sm">Memuat data...</div>
-        ) : items.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-sm">Belum ada portofolio</div>
-        ) : (
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Proyek</th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Klien</th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahun</th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {items.map(item => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="text-xs font-bold text-[#0A2472] line-clamp-1">{item.title}</p>
-                    <p className="text-[10px] text-slate-400">{item.category}</p>
-                  </td>
-                  <td className="px-4 py-4 text-xs text-slate-500">{item.client}</td>
-                  <td className="px-4 py-4 text-xs text-slate-500">{item.year}</td>
-                  <td className="px-4 py-4">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${item.is_active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
-                      {item.is_active ? 'Aktif' : 'Nonaktif'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => openEdit(item)} className="p-2 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id!)} className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      </>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {isLoading ? (
+              <div className="p-12 text-center text-slate-400 text-sm">Memuat data...</div>
+            ) : items.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 text-sm">Belum ada portofolio</div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Proyek</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Klien</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {items.map(item => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="text-xs font-bold text-[#0A2472] line-clamp-1">{item.title}</p>
+                        <p className="text-[10px] text-slate-400">{item.category}</p>
+                      </td>
+                      <td className="px-4 py-4 text-xs text-slate-500">{item.client}</td>
+                      <td className="px-4 py-4">
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${item.is_active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                          {item.is_active ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => openEdit(item)} className="p-2 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => handleDelete(item.id!)} className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
       )}
 
       {/* Modal */}
@@ -492,14 +486,6 @@ export default function PortfolioManager() {
                     className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-100"
                     placeholder="Atau tempel URL gambar..."
                   />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Tahun</label>
-                  <input value={editItem.year} onChange={e => setEditItem(p => ({ ...p, year: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="2024" />
                 </div>
               </div>
 

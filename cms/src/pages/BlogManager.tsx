@@ -10,6 +10,7 @@ interface BlogPost {
   description: string;
   description_en: string;
   content: string;
+  content_en: string;
   author: string;
   author_en: string;
   image_url: string;
@@ -27,6 +28,7 @@ const emptyItem: BlogPost = {
   description: '',
   description_en: '',
   content: '',
+  content_en: '',
   author: 'Tim Indiekraf',
   author_en: 'Indiekraf Team',
   image_url: '',
@@ -76,9 +78,11 @@ export default function BlogManager() {
     try {
       const res = await fetch('/api/settings', { headers });
       const data = await res.json();
-      const obj: Record<string, string> = {};
+      let obj: Record<string, string> = {};
       if (Array.isArray(data)) {
         data.forEach((s: any) => obj[s.setting_key] = s.setting_value);
+      } else if (data && typeof data === 'object') {
+        obj = { ...data };
       }
       setSettings(obj);
       if (obj['blog_categories']) {
@@ -105,7 +109,8 @@ export default function BlogManager() {
     setIsSavingSettings(true);
     try {
       const keysToSave = [
-        'blog_searchPlaceholder_id', 'blog_searchPlaceholder_en'
+        'blog_searchPlaceholder_id', 'blog_searchPlaceholder_en',
+        'email_destination_newsletter', 'email_destination_press_release'
       ];
       const payload: Record<string, string> = {};
       for (const key of keysToSave) {
@@ -246,7 +251,32 @@ export default function BlogManager() {
                 />
               </div>
 
-
+              <div className="md:col-span-2 border-t border-slate-100 pt-6">
+                <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider mb-2">Pengaturan Email Penerima Formulir Blog</label>
+                <p className="text-xs text-slate-500 mb-4">Tentukan alamat email penerima untuk pendaftaran Insight/Newsletter dan pengajuan Kontribusi Rilis Pers.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Penerima "Kirim Insight" (Newsletter)</label>
+                    <input
+                      type="email"
+                      value={settings['email_destination_newsletter'] ?? 'fikar@indiekraf.com'}
+                      onChange={e => handleChangeSetting('email_destination_newsletter', e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      placeholder="fikar@indiekraf.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Penerima "Kirim Rilis Pers Sekarang"</label>
+                    <input
+                      type="email"
+                      value={settings['email_destination_press_release'] ?? 'fikar@indiekraf.com'}
+                      onChange={e => handleChangeSetting('email_destination_press_release', e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      placeholder="fikar@indiekraf.com"
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Categories */}
               <div className="md:col-span-2 border-t border-slate-100 pt-6">
@@ -331,7 +361,7 @@ export default function BlogManager() {
               <tr>
                 <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Judul</th>
 
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahun</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Penulis</th>
                 <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
               </tr>
@@ -344,7 +374,7 @@ export default function BlogManager() {
                     <p className="text-[10px] text-slate-400">{item.category}</p>
                   </td>
 
-                  <td className="px-4 py-4 text-xs text-slate-500">{item.is_published}</td>
+                  <td className="px-4 py-4 text-xs text-slate-500">{item.author || 'Tim Indiekraf'}</td>
                   <td className="px-4 py-4">
                     <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${item.is_published ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
                       {item.is_published ? 'Aktif' : 'Nonaktif'}
@@ -455,9 +485,15 @@ export default function BlogManager() {
               </div>
               
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Tautan URL / Link</label>
-                <input value={editItem.read_more_link} onChange={e => setEditItem(p => ({ ...p, read_more_link: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="https://..." />
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Isi Artikel / Konten Lengkap (Indonesia)</label>
+                <textarea value={editItem.content || ''} onChange={e => setEditItem(p => ({ ...p, content: e.target.value }))}
+                  rows={6} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 font-mono" placeholder="Tulis isi artikel lengkap dalam Bahasa Indonesia..." />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Isi Artikel / Konten Lengkap (English)</label>
+                <textarea value={editItem.content_en || ''} onChange={e => setEditItem(p => ({ ...p, content_en: e.target.value }))}
+                  rows={6} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 font-mono" placeholder="Write full article content in English..." />
               </div>
 
               <div className="grid grid-cols-2 gap-4">

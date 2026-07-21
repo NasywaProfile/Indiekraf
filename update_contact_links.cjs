@@ -117,7 +117,7 @@ async function main() {
     const newContent = content.replace(/href=["'](https?:\/\/(wa\.me|api\.whatsapp\.com)[^"']*)["']/gi, (match, p1) => {
       if (p1 !== WA_LINK) {
         changed = true;
-        return \`href="\${WA_LINK}"\`;
+        return `href="${WA_LINK}"`;
       }
       return match;
     });

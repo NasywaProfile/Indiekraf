@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Search, 
-  ArrowRight, 
-  Send, 
+import {
+  Search,
+  ArrowRight,
+  Send,
   ChevronRight,
   Clock,
   User,
@@ -11,6 +11,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import Modal from './Modal';
 
 interface BlogPageProps {
   onBackToHome: () => void;
@@ -28,42 +29,23 @@ interface BlogPost {
   read_more_en?: string;
   read_more_link?: string;
   image: string;
+  content?: string;
 }
 
 export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPageProps) {
   const { language, settings } = useLanguage();
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [email, setEmail] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
-  const categoryTranslations: Record<string, { id: string, en: string }> = {
-    'Industri Game': { id: 'Industri Game', en: 'Game Industry' },
-    'Tech & Startup': { id: 'Tech & Startup', en: 'Tech & Startup' },
-    'Desain & Branding': { id: 'Desain & Branding', en: 'Design & Branding' },
-    'Ekonomi Kreatif': { id: 'Ekonomi Kreatif', en: 'Creative Economy' }
-  };
-  let categories = [
-    { id: 'all', label: language === 'id' ? 'Semua Artikel' : 'All Articles', label_id: 'Semua Artikel', label_en: 'All Articles' },
-    { id: 'game', label: language === 'id' ? 'Industri Game' : 'Game Industry', label_id: 'Industri Game', label_en: 'Game Industry' },
-    { id: 'tech', label: 'Tech & Startup', label_id: 'Tech & Startup', label_en: 'Tech & Startup' },
-    { id: 'design', label: language === 'id' ? 'Desain & Branding' : 'Design & Branding', label_id: 'Desain & Branding', label_en: 'Design & Branding' },
-    { id: 'economy', label: language === 'id' ? 'Ekonomi Kreatif' : 'Creative Economy', label_id: 'Ekonomi Kreatif', label_en: 'Creative Economy' },
-    { id: 'business', label: 'Tips & Bisnis', label_id: 'Tips & Bisnis', label_en: 'Tips & Business' },
-  ];
-
-  if (settings['blog_categories']) {
-    try {
-      const parsedCats = JSON.parse(settings['blog_categories']);
-      categories = [
-        { id: 'all', label: language === 'id' ? 'Semua Artikel' : 'All Articles', label_id: 'Semua Artikel', label_en: 'All Articles' },
-        ...parsedCats.map((c: any) => ({
-          id: c.label_id || c.id || Math.random().toString(),
-          label: language === 'id' ? c.label_id : c.label_en,
-          label_id: c.label_id,
-          label_en: c.label_en
-        }))
-      ];
-    } catch {}
-  }
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  
+  // Press Release Form States
+  const [isPressModalOpen, setIsPressModalOpen] = useState(false);
+  const [pressTitle, setPressTitle] = useState('');
+  const [pressSubtitle, setPressSubtitle] = useState('');
+  const [pressArticle, setPressArticle] = useState('');
+  const [pressImage, setPressImage] = useState<File | null>(null);
+  const [pressImagePreview, setPressImagePreview] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [posts, setPosts] = useState<BlogPost[]>([
     {
@@ -154,34 +136,110 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
             author: item.author || 'Tim Indiekraf',
             read_more_id: item.read_more || 'Baca',
             read_more_en: item.read_more_en || 'Read',
-            read_more_link: item.link || '#',
-            image: item.image_url || '/gambar.jpg'
+            read_more_link: '#',
+            image: item.image_url || '/gambar.jpg',
+            content: language === 'id' ? (item.content || '') : (item.content_en || item.content || '')
           }));
           setPosts(mappedPosts);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [language]);
 
-  const selectedCat = categories.find(c => c.id === activeFilter);
-
   const filteredPosts = posts.filter(post => {
-    let matchesFilter = false;
-    if (activeFilter === 'all') {
-      matchesFilter = true;
-    } else if (selectedCat) {
-      const matchId = (post.category || '').toLowerCase().includes((selectedCat.label_id || '').toLowerCase());
-      const matchEn = (post.category_en || '').toLowerCase().includes((selectedCat.label_en || '').toLowerCase());
-      matchesFilter = matchId || matchEn;
-    } else {
-      matchesFilter = (post.category || '').toLowerCase().includes(activeFilter.toLowerCase()) || 
-                      (post.category_en || '').toLowerCase().includes(activeFilter.toLowerCase());
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesSearch;
+  });
+
+  const handleNewsletterSubmit = () => {
+    if (!email.trim()) return;
+
+    fetch('/api/newsletter', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email
+      })
+    })
+      .then(() => {
+        alert('Email berhasil dikirim');
+        setEmail('');
+      })
+      .catch(() => {
+        alert('Gagal mengirim email');
+      });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPressImage(file);
+      setPressImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handlePressSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pressTitle.trim() || !pressSubtitle.trim() || !pressArticle.trim()) {
+      alert(language === 'id' ? 'Judul, sub judul, dan artikel wajib diisi' : 'Title, subtitle, and article are required');
+      return;
     }
 
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         post.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+    setIsSubmitting(true);
+    try {
+      let imageUrl = '';
+      if (pressImage) {
+        const formData = new FormData();
+        formData.append('image', pressImage);
+        
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.success) {
+          imageUrl = uploadData.url;
+        } else {
+          throw new Error('Upload image failed');
+        }
+      }
+
+      const response = await fetch('/api/press-release', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: pressTitle,
+          subtitle: pressSubtitle,
+          article: pressArticle,
+          imageUrl,
+        }),
+      });
+
+      if (response.ok) {
+        alert(language === 'id' ? 'Rilis pers berhasil dikirim!' : 'Press release submitted successfully!');
+        setPressTitle('');
+        setPressSubtitle('');
+        setPressArticle('');
+        setPressImage(null);
+        setPressImagePreview('');
+        setIsPressModalOpen(false);
+      } else {
+        alert(language === 'id' ? 'Gagal mengirim rilis pers' : 'Failed to submit press release');
+      }
+    } catch (error) {
+      console.error(error);
+      alert(language === 'id' ? 'Terjadi kesalahan sistem' : 'A system error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const t = {
     id: {
@@ -228,43 +286,95 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.5, ease: "easeOut" }
     }
   };
+
+  if (selectedPost) {
+    return (
+      <div className="w-full bg-white min-h-screen pt-0 pb-20">
+        {/* Detail Hero Section */}
+        <div className="relative w-full h-[65vh] min-h-[450px] overflow-hidden bg-slate-950 flex flex-col justify-between pt-32 pb-12">
+          {/* Background Image overlay */}
+          <div className="absolute inset-0 z-0">
+            {selectedPost.image ? (
+              <img
+                src={selectedPost.image}
+                alt={selectedPost.title}
+                className="w-full h-full object-cover opacity-50 scale-102"
+              />
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/30" />
+          </div>
+
+          {/* Top Controls Container: Absolute/Flex for top left and top right */}
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            {/* Top Left: Back Button */}
+            <button
+              onClick={() => setSelectedPost(null)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-[11px] font-black uppercase tracking-[0.15em] rounded-xl border border-white/10 backdrop-blur-md transition-all shadow-sm"
+            >
+              ← Kembali ke Blog
+            </button>
+            {/* Top Right: Category Button/Badge */}
+            <div className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-500/20 text-blue-300 text-[11px] font-black tracking-widest uppercase border border-blue-500/30 backdrop-blur-md shadow-sm">
+              {language === 'id' ? selectedPost.category : (selectedPost.category_en || selectedPost.category)}
+            </div>
+          </div>
+
+          {/* Bottom content: Title and Author */}
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-auto text-left">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-extrabold text-white leading-tight mb-6 tracking-tight drop-shadow-md max-w-4xl">
+              {selectedPost.title}
+            </h1>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white text-[11px] font-black uppercase tracking-[0.15em] rounded-xl border border-white/10 backdrop-blur-md shadow-sm">
+              Oleh: {selectedPost.author}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <p className="text-lg sm:text-xl text-slate-600 font-semibold leading-relaxed mb-10 border-l-4 border-[#0A2472] pl-6 italic">
+            {selectedPost.description}
+          </p>
+
+          <article className="prose prose-blue max-w-none text-slate-700 leading-relaxed text-sm sm:text-base space-y-6">
+            {selectedPost.content ? (
+              selectedPost.content.includes('<') && selectedPost.content.includes('>') ? (
+                <div dangerouslySetInnerHTML={{ __html: selectedPost.content }} />
+              ) : (
+                selectedPost.content.split('\n').map((para, i) => (
+                  para.trim() ? <p key={i} className="mb-4">{para}</p> : null
+                ))
+              )
+            ) : (
+              <p className="text-slate-400 italic">Artikel ini belum memiliki isi konten lengkap.</p>
+            )}
+          </article>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-white min-h-screen">
       {/* 1. Filters & Search Section - Minimalist */}
       <section className="w-full pt-28 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 border-b border-slate-100 pb-8">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveFilter(cat.id)}
-                  className={`px-4 py-1.5 rounded-[10px] text-[10px] font-bold tracking-widest uppercase transition-all duration-300 border ${
-                    activeFilter === cat.id
-                      ? 'bg-[#0A2472] text-white border-[#0A2472]'
-                      : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 hover:text-slate-600'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-            
-            <div className="relative group max-w-xs w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-              <input 
+          <div className="mb-12 border-b border-slate-100 pb-8">
+            <div className="relative w-full">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+
+              <input
                 type="text"
                 placeholder={ct.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-[10px] text-[11px] font-medium text-[#0A2472] focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium text-[#0A2472] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#0A2472] transition-all"
               />
             </div>
           </div>
@@ -286,8 +396,8 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                   >
                     <div className="aspect-[16/10] overflow-hidden rounded-[10px] mb-8 bg-[#0A2472] flex items-center justify-center">
                       {filteredPosts[0].image ? (
-                        <img 
-                          src={filteredPosts[0].image} 
+                        <img
+                          src={filteredPosts[0].image}
                           alt={filteredPosts[0].title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                           referrerPolicy="no-referrer"
@@ -306,15 +416,17 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                       <p className="text-sm text-slate-500 leading-relaxed font-medium mb-8 max-w-2xl">
                         {filteredPosts[0].description}
                       </p>
-                      <a 
-                        href={filteredPosts[0].read_more_link || '#'} 
-                        target="_blank" 
-                        rel="noreferrer"
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedPost(filteredPosts[0]);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="inline-flex items-center gap-3 px-8 py-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-xl text-[11px] font-black text-[#0A2472] uppercase tracking-[0.2em] group/btn hover:bg-[#0A2472] hover:text-white transition-all shadow-sm"
                       >
                         <span>{language === 'id' ? (filteredPosts[0].read_more_id || ct.readMore) : (filteredPosts[0].read_more_en || ct.readMore)}</span>
                         <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-                      </a>
+                      </button>
                     </div>
                   </motion.div>
 
@@ -332,8 +444,8 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                       >
                         <div className="w-full sm:w-44 lg:w-48 h-44 sm:h-auto shrink-0 overflow-hidden rounded-[10px] bg-[#0A2472] flex items-center justify-center">
                           {post.image ? (
-                            <img 
-                              src={post.image} 
+                            <img
+                              src={post.image}
                               alt={post.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                               referrerPolicy="no-referrer"
@@ -352,15 +464,17 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                           <p className="text-[12px] text-slate-500 leading-relaxed font-medium mb-5 line-clamp-2">
                             {post.description}
                           </p>
-                          <a 
-                            href={post.read_more_link || '#'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-3 text-[10px] font-black text-[#0A2472] uppercase tracking-[0.2em] group/btn hover:text-blue-600 transition-colors mt-auto"
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelectedPost(post);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="inline-flex items-center gap-3 text-[10px] font-black text-[#0A2472] uppercase tracking-[0.2em] group/btn hover:text-blue-600 transition-colors mt-auto text-left"
                           >
                             <span>{language === 'id' ? (post.read_more_id || ct.readMore) : (post.read_more_en || ct.readMore)}</span>
                             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
-                          </a>
+                          </button>
                         </div>
                       </motion.div>
                     ))}
@@ -381,8 +495,8 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                         >
                           <div className="aspect-video overflow-hidden rounded-[10px] mb-6 bg-[#0A2472] flex items-center justify-center">
                             {post.image ? (
-                              <img 
-                                src={post.image} 
+                              <img
+                                src={post.image}
                                 alt={post.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                                 referrerPolicy="no-referrer"
@@ -401,15 +515,17 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                             <p className="text-[12px] text-slate-500 leading-relaxed font-medium mb-8 flex-1 line-clamp-3">
                               {post.description}
                             </p>
-                            <a 
-                              href={post.read_more_link || '#'}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-3 text-[10px] font-black text-[#0A2472] uppercase tracking-[0.2em] group/btn hover:text-blue-600 transition-colors mt-auto"
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedPost(post);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="inline-flex items-center gap-3 text-[10px] font-black text-[#0A2472] uppercase tracking-[0.2em] group/btn hover:text-blue-600 transition-colors mt-auto text-left"
                             >
                               <span>{language === 'id' ? (post.read_more_id || ct.readMore) : (post.read_more_en || ct.readMore)}</span>
                               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
-                            </a>
+                            </button>
                           </div>
                         </motion.div>
                       ))}
@@ -417,7 +533,7 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                   )}
                 </div>
               ) : (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="py-32 text-center"
@@ -436,9 +552,9 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
       {/* 4. Newsletter & Press Release Section */}
       <section className="w-full py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
+
           {/* Newsletter Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false }}
@@ -455,28 +571,32 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                 Rangkuman riset tren industri kreatif, tips bisnis, dan webinar eksklusif yang dikirim setiap hari Selasa pagi tanpa spam.
               </p>
             </div>
-            
+
             <div className="relative group">
-              <input 
+              <input
                 type="email"
                 placeholder={ct.emailPlaceholder}
-                className="w-full pl-6 pr-14 py-4 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium text-[#0A2472] focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#0A2472] transition-all"
-              />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0A2472] text-white rounded-[10px] flex items-center justify-center hover:bg-blue-800 transition-colors active:scale-90">
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-6 pr-14 py-4 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium text-[#0A2472] focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#0A2472] transition-all" />
+              <button
+                onClick={handleNewsletterSubmit}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0A2472] text-white rounded-[10px] flex items-center justify-center hover:bg-blue-800 transition-colors active:scale-90"
+              >
                 <Send className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
 
           {/* Press Release Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false }}
             className="p-10 rounded-[10px] bg-[#0A2472] text-white relative overflow-hidden flex flex-col justify-between"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-            
+
             <div className="relative z-10">
               <div className="inline-flex items-center px-3 py-1 rounded-[10px] bg-white/10 text-white text-[10px] font-bold tracking-widest border border-white/20 mb-6 uppercase">
                 {settings.press_badge || ct.pressBadge}
@@ -489,12 +609,130 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
               </p>
             </div>
 
-            <button className="relative z-10 w-full py-4 bg-white text-[#0A2472] text-xs font-extrabold rounded-[10px] hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <button 
+              onClick={() => setIsPressModalOpen(true)}
+              className="relative z-10 w-full py-4 bg-white text-[#0A2472] text-xs font-extrabold rounded-[10px] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
               {settings.press_btn || ct.pressBtn}
             </button>
           </motion.div>
         </div>
       </section>
+
+      <Modal
+        isOpen={isPressModalOpen}
+        onClose={() => {
+          if (!isSubmitting) {
+            setIsPressModalOpen(false);
+          }
+        }}
+        title={language === 'id' ? 'Kirim Kontribusi Rilis Pers' : 'Submit Press Release Contribution'}
+      >
+        <form onSubmit={handlePressSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider">
+                {language === 'id' ? 'Judul Rilis Pers' : 'Press Release Title'}
+              </label>
+              <input
+                type="text"
+                required
+                value={pressTitle}
+                onChange={(e) => setPressTitle(e.target.value)}
+                placeholder={language === 'id' ? 'Contoh: Peluncuran Produk Baru Indiekraf...' : 'Example: Indiekraf New Product Launch...'}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider">
+                {language === 'id' ? 'Sub Judul / Ringkasan Singkat' : 'Subtitle / Brief Summary'}
+              </label>
+              <input
+                type="text"
+                required
+                value={pressSubtitle}
+                onChange={(e) => setPressSubtitle(e.target.value)}
+                placeholder={language === 'id' ? 'Ringkasan rilis pers dalam satu kalimat...' : 'One-sentence summary of the press release...'}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider">
+                  {language === 'id' ? 'Gambar Rilis Pers' : 'Press Release Image'}
+                </label>
+                <div className="flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-slate-200 border-dashed rounded-[10px] cursor-pointer bg-slate-50 hover:bg-slate-100/50 transition-colors relative overflow-hidden group">
+                    {pressImagePreview ? (
+                      <>
+                        <img src={pressImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-bold uppercase tracking-wider">
+                          {language === 'id' ? 'Ganti Gambar' : 'Change Image'}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                        <Sparkles className="w-6 h-6 text-[#0A2472]/40 mb-2 animate-pulse" />
+                        <p className="mb-1 text-[10px] text-slate-500 font-semibold">
+                          {language === 'id' ? 'Klik untuk unggah gambar' : 'Click to upload image'}
+                        </p>
+                        <p className="text-[9px] text-slate-400">PNG, JPG, JPEG (Max. 5MB)</p>
+                      </div>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider">
+                {language === 'id' ? 'Isi Artikel Lengkap' : 'Full Article Content'}
+              </label>
+              <textarea
+                required
+                rows={7}
+                value={pressArticle}
+                onChange={(e) => setPressArticle(e.target.value)}
+                placeholder={language === 'id' ? 'Masukkan seluruh isi konten rilis pers di sini secara mendetail...' : 'Enter the complete body content of your press release here in detail...'}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => setIsPressModalOpen(false)}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[10px] transition-colors duration-200 disabled:opacity-50"
+            >
+              {language === 'id' ? 'Batal' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 bg-[#0A2472] hover:bg-blue-800 text-white font-bold text-xs rounded-[10px] transition-colors duration-200 flex items-center gap-2 shadow-lg shadow-blue-900/10 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {language === 'id' ? 'Mengirim...' : 'Submitting...'}
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  {language === 'id' ? 'Kirim Rilis Pers' : 'Submit Press Release'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
     </div>
   );

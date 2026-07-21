@@ -40,12 +40,12 @@ router.get('/:id', async (req, res) => {
 
 // POST create new blog post
 router.post('/', async (req, res) => {
-  const { category, category_en, title, title_en, description, description_en, content, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published } = req.body;
+  const { category, category_en, title, title_en, description, description_en, content, content_en, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published } = req.body;
   try {
     const [result] = await pool.query(
-      `INSERT INTO blog_posts (category, category_en, title, title_en, description, description_en, content, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [category, category_en, title, title_en, description, description_en, content, author || 'Tim Indiekraf', author_en || 'Indiekraf Team', image_url, read_more_id, read_more_en, read_more_link, is_published ?? 1]
+      `INSERT INTO blog_posts (category, category_en, title, title_en, description, description_en, content, content_en, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [category, category_en, title, title_en, description, description_en, content, content_en, author || 'Tim Indiekraf', author_en || 'Indiekraf Team', image_url, read_more_id, read_more_en, read_more_link, is_published ?? 1]
     ) as any;
     res.json({ success: true, id: result.insertId });
   } catch (err) {
@@ -55,11 +55,11 @@ router.post('/', async (req, res) => {
 
 // PUT update blog post
 router.put('/:id', async (req, res) => {
-  const { category, category_en, title, title_en, description, description_en, content, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published } = req.body;
+  const { category, category_en, title, title_en, description, description_en, content, content_en, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published } = req.body;
   try {
     await pool.query(
-      `UPDATE blog_posts SET category=?, category_en=?, title=?, title_en=?, description=?, description_en=?, content=?, author=?, author_en=?, image_url=?, read_more_id=?, read_more_en=?, read_more_link=?, is_published=? WHERE id=?`,
-      [category, category_en, title, title_en, description, description_en, content, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published, req.params.id]
+      `UPDATE blog_posts SET category=?, category_en=?, title=?, title_en=?, description=?, description_en=?, content=?, content_en=?, author=?, author_en=?, image_url=?, read_more_id=?, read_more_en=?, read_more_link=?, is_published=? WHERE id=?`,
+      [category, category_en, title, title_en, description, description_en, content, content_en, author, author_en, image_url, read_more_id, read_more_en, read_more_link, is_published, req.params.id]
     );
     res.json({ success: true });
   } catch (err) {

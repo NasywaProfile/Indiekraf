@@ -26,6 +26,13 @@ export const ContactPage: React.FC = () => {
   const { language, settings } = useLanguage();
   const [selectedService, setSelectedService] = useState('');
 
+  // Collaboration Brief Form States
+  const [name, setName] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [details, setDetails] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const t = {
     id: {
       badge: 'HUBUNGI KAMI',
@@ -92,6 +99,47 @@ export const ContactPage: React.FC = () => {
       bottomTitle: 'Ready To Build Something Great?',
       bottomSub: 'Contact the Indiekraf Team for Service Consultation, Proposal Requests, and Cost Estimation.',
       waBtn: 'Chat WhatsApp'
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !clientEmail.trim() || !whatsapp.trim() || !selectedService || !details.trim()) {
+      alert(language === 'id' ? 'Semua field formulir wajib diisi!' : 'All form fields are required!');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email: clientEmail,
+          whatsapp,
+          service: selectedService,
+          details,
+        }),
+      });
+
+      if (response.ok) {
+        alert(language === 'id' ? 'Formulir brief kolaborasi berhasil dikirim!' : 'Collaboration brief form submitted successfully!');
+        setName('');
+        setClientEmail('');
+        setWhatsapp('');
+        setSelectedService('');
+        setDetails('');
+      } else {
+        alert(language === 'id' ? 'Gagal mengirim formulir' : 'Failed to submit form');
+      }
+    } catch (error) {
+      console.error(error);
+      alert(language === 'id' ? 'Terjadi kesalahan sistem' : 'A system error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -384,12 +432,15 @@ export const ContactPage: React.FC = () => {
             </p>
           </div>
 
-          <form className="space-y-5">
+          <form onSubmit={handleContactSubmit} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-[#0A2472] tracking-widest">{formLabelName}</label>
                 <input 
                   type="text" 
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder={formPlaceholderName}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium"
                 />
@@ -398,6 +449,9 @@ export const ContactPage: React.FC = () => {
                 <label className="text-[10px] font-black text-[#0A2472] tracking-widest">{formLabelEmail}</label>
                 <input 
                   type="email" 
+                  required
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
                   placeholder={formPlaceholderEmail}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium"
                 />
@@ -409,6 +463,9 @@ export const ContactPage: React.FC = () => {
                 <label className="text-[10px] font-black text-[#0A2472] tracking-widest">{formLabelWa}</label>
                 <input 
                   type="text" 
+                  required
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
                   placeholder={formPlaceholderWa}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium"
                 />
@@ -417,6 +474,7 @@ export const ContactPage: React.FC = () => {
                 <label className="text-[10px] font-black text-[#0A2472] tracking-widest">{formLabelService}</label>
                 <div className="relative">
                   <select 
+                    required
                     value={selectedService}
                     onChange={(e) => setSelectedService(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium appearance-none cursor-pointer"
@@ -435,13 +493,29 @@ export const ContactPage: React.FC = () => {
               <label className="text-[10px] font-black text-[#0A2472] tracking-widest">{formLabelDetail}</label>
               <textarea 
                 rows={3}
+                required
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium resize-none"
               />
             </div>
 
-            <button className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[10px] font-black text-sm tracking-wide shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
-              <Send className="w-4 h-4" />
-              {formBtn}
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[10px] font-black text-sm tracking-wide shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {language === 'id' ? 'Mengirim...' : 'Submitting...'}
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  {formBtn}
+                </>
+              )}
             </button>
           </form>
         </motion.div>

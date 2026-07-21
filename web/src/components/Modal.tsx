@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -22,7 +23,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     };
   }, [isOpen]);
 
-  return (
+  const modalJSX = (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10" id="modal-container">
@@ -42,7 +43,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', duration: 0.5 }}
-            className="relative bg-white w-full max-w-6xl rounded-[10px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 border border-slate-100"
+            className="relative bg-white w-full max-w-5xl rounded-[10px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 border border-slate-100"
             id="modal-content-wrapper"
           >
             {/* Header */}
@@ -68,4 +69,6 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalJSX, document.body);
 }

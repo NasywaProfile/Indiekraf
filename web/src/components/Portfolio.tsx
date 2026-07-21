@@ -59,12 +59,12 @@ export default function Portfolio({ isModal = false }: PortfolioProps) {
           setProjects(data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const content = (
     <div className={isModal ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"}>
-      
+
       {/* Header */}
       {!isModal && (
         <div className="text-center max-w-3xl mx-auto mb-16" id="portfolio-header">
@@ -82,49 +82,59 @@ export default function Portfolio({ isModal = false }: PortfolioProps) {
 
       {/* Projects Grid */}
       <div className={`grid grid-cols-1 md:grid-cols-2 ${isModal ? 'lg:grid-cols-3' : 'lg:grid-cols-3'} gap-8`} id="portfolio-grid">
-          {projects.map((project, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ y: -6 }}
-              className="bg-slate-50 rounded-[10px] overflow-hidden border border-slate-100 group shadow-xs hover:shadow-xl transition-all duration-300"
-              id={`portfolio-project-${i}`}
-            >
-              {/* Image box */}
-              <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100">
-                <img
-                  src={project.image_url || project.image || '/gambar.jpg'}
-                  alt={language === 'id' ? project.title : (project.title_en || project.title)}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                  <div className="flex items-center space-x-2 text-white font-bold text-sm">
-                    <span>{t('portfolio.viewDetail')}</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </div>
+        {projects.map((project, i) => (
+          <motion.a
+            key={i}
+            href={
+              project.link_url?.trim()
+                ? project.link_url
+                : "/on-progress"
+            }
+            target={
+              project.link_url?.trim()
+                ? "_blank"
+                : "_self"
+            }
+            rel="noopener noreferrer"
+            whileHover={{ y: -6 }}
+            className="block bg-slate-50 rounded-[10px] overflow-hidden border border-slate-100 group shadow-xs hover:shadow-xl transition-all duration-300"
+            id={`portfolio-project-${i}`}
+          >
+            {/* Image box */}
+            <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100">
+              <img
+                src={project.image_url || project.image || '/gambar.jpg'}
+                alt={language === 'id' ? project.title : (project.title_en || project.title)}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                <div className="flex items-center space-x-2 text-white font-bold text-sm">
+                  <span>{t('portfolio.viewDetail')}</span>
+                  <ExternalLink className="w-4 h-4" />
                 </div>
-                {/* Floating Tag */}
-                { (project.tag || project.tag_en) && (
+              </div>
+              {/* Floating Tag */}
+              {(project.tag || project.tag_en) && (
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-[10px] text-xs font-bold text-[#0A2472] shadow-sm uppercase">
                   {language === 'id' ? project.tag : (project.tag_en || project.tag)}
                 </div>
-                )}
-              </div>
+              )}
+            </div>
 
-              {/* Text content */}
-              <div className="p-6">
-                <p className="text-xs font-bold tracking-widest text-[#0A2472] uppercase font-mono mb-2">
-                  {language === 'id' ? project.category : (project.category_en || project.category)}
-                </p>
-                <h3 className="text-sm sm:text-base md:text-lg font-sans font-bold text-[#0A2472] group-hover:text-[#0A2472] transition-colors line-clamp-1">
-                  {language === 'id' ? project.title : (project.title_en || project.title)}
-                </h3>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+            {/* Text content */}
+            <div className="p-6">
+              <p className="text-xs font-bold tracking-widest text-[#0A2472] uppercase font-mono mb-2">
+                {language === 'id' ? project.category : (project.category_en || project.category)}
+              </p>
+              <h3 className="text-sm sm:text-base md:text-lg font-sans font-bold text-[#0A2472] group-hover:text-[#0A2472] transition-colors line-clamp-1">
+                {language === 'id' ? project.title : (project.title_en || project.title)}
+              </h3>
+            </div>
+          </motion.a>))}
       </div>
-    );
+    </div>
+  );
 
   if (isModal) {
     return content;
@@ -150,9 +160,9 @@ export default function Portfolio({ isModal = false }: PortfolioProps) {
               }}
               className={`absolute w-28 h-28 lg:w-36 lg:h-36 flex items-center justify-center drop-shadow-[0_20px_20px_rgba(0,0,0,0.15)] ${className}`}
             >
-              <img 
-                src={src} 
-                alt={alt} 
+              <img
+                src={src}
+                alt={alt}
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';

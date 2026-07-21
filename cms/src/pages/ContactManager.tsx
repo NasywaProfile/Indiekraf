@@ -424,6 +424,21 @@ export default function ContactManager() {
               <input type="text" value={settings['contact_form_label_detail_en'] ?? 'PROJECT PLAN DETAILS / QUESTIONS'} onChange={e => handleChange('contact_form_label_detail_en', e.target.value)} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100" />
             </div>
 
+            <div className="sm:col-span-2 border-t border-slate-100 pt-6">
+              <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider mb-2">Pengaturan Email Penerima Brief</label>
+              <p className="text-xs text-slate-500 mb-4">Tentukan alamat email penerima untuk kiriman formulir brief kolaborasi.</p>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Penerima "Kirim Brief Kolaborasi"</label>
+                <input
+                  type="email"
+                  value={settings['email_destination_contact'] ?? 'fikar@indiekraf.com'}
+                  onChange={e => handleChange('email_destination_contact', e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  placeholder="fikar@indiekraf.com"
+                />
+              </div>
+            </div>
+
             <div className="sm:col-span-2 mt-4"><h3 className="text-sm font-bold text-[#0A2472]">Opsi Layanan (Dropdown)</h3></div>
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Layanan 1 (ID)</label>

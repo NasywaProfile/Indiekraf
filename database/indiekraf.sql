@@ -1,24 +1,25 @@
 -- ============================================================
--- Indiekraf CMS Database Schema
--- Import file ini melalui phpMyAdmin di XAMPP
+-- Indiekraf CMS Database Schema & Seed Data
+-- Database Name: indiekraf_db
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS `indiekraf_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `indiekraf_db`;
 
 -- ============================================================
--- Table: site_settings (Hero, Stats, About text)
+-- 1. Table: site_settings (Hero section, stats counters, about details, and mail target configs)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `site_settings` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `key` VARCHAR(100) NOT NULL UNIQUE,
   `value` TEXT,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Seed general configurations, texts, contact info, and form email destinations
 INSERT INTO `site_settings` (`key`, `value`) VALUES
 ('hero_title_id', 'Ekosistem Kreatif Digital Indonesia'),
-('hero_title_en', 'Indonesia''s Digital Creative Ecosystem'),
+('hero_title_en', 'Indonesia\'s Digital Creative Ecosystem'),
 ('hero_subtitle_id', 'Indiekraf menghadirkan solusi media, studio kreatif, akademi, dan riset untuk mendorong pertumbuhan bisnis Anda di era digital.'),
 ('hero_subtitle_en', 'Indiekraf provides media, creative studio, academy, and research solutions to drive your business growth in the digital era.'),
 ('hero_cta_primary_id', 'Pelajari Layanan'),
@@ -32,14 +33,18 @@ INSERT INTO `site_settings` (`key`, `value`) VALUES
 ('about_tagline_id', 'Tentang Indiekraf'),
 ('about_tagline_en', 'About Indiekraf'),
 ('about_description_id', 'Indiekraf adalah ekosistem kreatif digital yang mengintegrasikan media, studio kreatif, akademi nonformal, dan pusat riset untuk mendorong transformasi industri kreatif Indonesia.'),
-('about_description_en', 'Indiekraf is a digital creative ecosystem that integrates media, creative studio, non-formal academy, and research center to drive the transformation of Indonesia''s creative industry.'),
+('about_description_en', 'Indiekraf is a digital creative ecosystem that integrates media, creative studio, non-formal academy, and research center to drive the transformation of Indonesia\'s creative industry.'),
 ('contact_email', 'hello@indiekraf.com'),
 ('contact_phone', '+62 812-3456-7890'),
 ('contact_address', 'Malang, Jawa Timur, Indonesia'),
-('contact_maps_embed', '');
+('contact_maps_embed', ''),
+('email_destination_newsletter', 'fikar@indiekraf.com'),
+('email_destination_press_release', 'fikar@indiekraf.com'),
+('email_destination_contact', 'fikar@indiekraf.com')
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 
 -- ============================================================
--- Table: services (Layanan Indiekraf)
+-- 2. Table: services (Services details, badges, bullets, and links)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `services` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -55,44 +60,56 @@ CREATE TABLE IF NOT EXISTS `services` (
   `is_active` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `services` (`slug`, `title`, `description`, `bullets`, `link_text`, `link_url`, `color_theme`, `icon_name`, `sort_order`) VALUES
 ('media', 'Indiekraf Media', 'Portal media ekonomi & industri kreatif Indonesia.', '["Iklan","Penempatan Media","Siaran Pers"]', 'Lihat Indiekraf Media →', '#media', 'blue', 'Newspaper', 1),
 ('studio', 'Indiekraf Studio', 'Agensi kreatif berbasis proyek untuk transformasi digital.', '["Pemasaran Digital","Branding & Desain Grafis","Desain UI/UX","Pengembangan Web"]', 'Lihat Indiekraf Studio →', '#studio', 'purple', 'Layers', 2),
 ('academy', 'Indiekraf Academy', 'Laboratorium akademik nonformal untuk pengembangan SDM industri kreatif.', '["Aktivasi Program","Pelatihan In-house","Workshop & Sertifikasi"]', 'Konsultasi Program Training →', '#academy', 'green', 'GraduationCap', 3),
-('insight', 'Indiekraf Insight Center', 'Riset & pengembangan industri kreatif.', '["Riset Produk","Riset Digital","Kebijakan Publik","Pengembangan Komunitas"]', 'Diskusikan Kebutuhan Riset →', '#insight', 'orange', 'BarChart2', 4);
+('insight', 'Indiekraf Insight Center', 'Riset & pengembangan industri kreatif.', '["Riset Produk","Riset Digital","Kebijakan Publik","Pengembangan Komunitas"]', 'Diskusikan Kebutuhan Riset →', '#insight', 'orange', 'BarChart2', 4)
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `bullets` = VALUES(`bullets`), `link_text` = VALUES(`link_text`), `link_url` = VALUES(`link_url`), `color_theme` = VALUES(`color_theme`), `icon_name` = VALUES(`icon_name`), `sort_order` = VALUES(`sort_order`);
 
 -- ============================================================
--- Table: pricing_plans (Paket Harga)
+-- 3. Table: pricing_plans (Pricing options, category tags, subtitles, prices, badges, and features)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `pricing_plans` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `slug` VARCHAR(100) NOT NULL UNIQUE,
   `name` VARCHAR(200) NOT NULL,
+  `name_en` VARCHAR(200),
   `subtitle` VARCHAR(300),
+  `subtitle_en` VARCHAR(300),
   `price` VARCHAR(100),
+  `price_en` VARCHAR(100),
   `badge` VARCHAR(50),
+  `badge_en` VARCHAR(50),
   `color_theme` ENUM('blue','purple','pink','green') DEFAULT 'blue',
   `bullets` TEXT COMMENT 'JSON array of bullet points',
+  `bullets_en` TEXT COMMENT 'JSON array of bullet points in English',
   `category` VARCHAR(100),
   `sort_order` INT DEFAULT 0,
   `is_active` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `category_title` VARCHAR(255) DEFAULT '',
+  `category_title_en` VARCHAR(255) DEFAULT '',
+  `category_subtitle` VARCHAR(255) DEFAULT '',
+  `category_subtitle_en` VARCHAR(255) DEFAULT '',
+  `category_icon` VARCHAR(50) DEFAULT 'Target',
+  `btn_text_id` VARCHAR(100) DEFAULT NULL,
+  `btn_text_en` VARCHAR(100) DEFAULT NULL,
+  `btn_link` VARCHAR(300) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `pricing_plans` (`slug`, `name`, `subtitle`, `price`, `badge`, `color_theme`, `bullets`, `category`, `sort_order`) VALUES
-('marketing', 'Pelatihan Digital Marketing', 'Workshop & Bootcamp Intensif', 'Mulai dari Rp 1JT', 'POPULER', 'blue', '["Materi up-to-date","Mentoring interaktif","Studi kasus nyata","Sertifikat pelatihan"]', 'Pelatihan', 1),
-('branding', 'Branding & Identity', 'Logo, Visual Identity, Brand Guide', 'Mulai dari Rp 3JT', 'PREMIUM', 'purple', '["Analisis brand","Desain logo premium","Palet warna & tipografi","Panduan identitas (guideline)"]', 'Branding', 2),
-('social', 'Social Media Management', 'Konten, Strategi, Community', 'Mulai dari Rp 4.5JT', 'BEST VALUE', 'pink', '["Rencana konten bulanan","Desain feed estetik","Copywriting & hashtag","Laporan performa bulanan"]', 'Social Media', 3),
-('web', 'Website Development', 'Landing Page, Company Profile', 'Mulai dari Rp 5JT', 'STARTER', 'green', '["Desain responsif & modern","Optimasi SEO dasar","Integrasi formulir/WA","Kecepatan akses tinggi"]', 'Website', 4),
-('content-creation', 'Content Creation Paket', 'Video Reels, TikTok & Copywriting', 'Mulai dari Rp 2.5JT', 'POPULER', 'blue', '["12 Video pendek/bulan","Riset tren & naskah","Editing video profesional","Voice over & caption"]', 'Content', 5),
-('seo-sem-pack', 'SEO & SEM Optimization', 'Google Ads & Rank Improvement', 'Mulai dari Rp 4JT', 'PREMIUM', 'purple', '["Riset kata kunci kompetitif","Optimasi On-page & Off-page","Setup & Optimasi Google Ads","Laporan performa bulanan"]', 'SEO & SEM', 6),
-('consulting-strat', 'Digital Strategy Consulting', 'Sesi Privat & Rekomendasi Bisnis', 'Mulai dari Rp 1.5JT', 'STARTER', 'green', '["Sesi konsultasi 1-on-1","Analisis kompetitor mendalam","Rencana aksi (action plan) detail","Evaluasi performa berkala"]', 'Consulting', 7);
+INSERT INTO `pricing_plans` (`slug`, `name`, `name_en`, `subtitle`, `subtitle_en`, `price`, `price_en`, `badge`, `badge_en`, `color_theme`, `bullets`, `bullets_en`, `category`, `sort_order`, `category_title`, `category_title_en`, `category_subtitle`, `category_subtitle_en`, `category_icon`, `btn_text_id`, `btn_text_en`, `btn_link`) VALUES
+('marketing', 'Pelatihan Digital Marketing', 'Digital Marketing Training', 'Workshop & Bootcamp Intensif', 'Workshop & Intensive Bootcamp', 'Mulai dari Rp 1JT', 'Starting from Rp 1M', 'POPULER', 'POPULAR', 'blue', '["Materi up-to-date","Mentoring interaktif","Studi kasus nyata","Sertifikat pelatihan"]', '["Up-to-date material","Interactive mentoring","Real case studies","Training certificate"]', 'Pelatihan', 1, 'Pelatihan Digital Marketing', 'Digital Marketing Training', 'Workshop - Kelas - Bootcamp Intensif', 'Workshops - Classes - Intensive Bootcamps', 'GraduationCap', 'Hubungi Kami', 'Contact Us', ''),
+('branding', 'Branding & Identity', 'Branding & Identity', 'Logo, Visual Identity, Brand Guide', 'Logo, Visual Identity, Brand Guide', 'Mulai dari Rp 3JT', 'Starting from Rp 3M', 'PREMIUM', 'PREMIUM', 'purple', '["Analisis brand","Desain logo premium","Palet warna & tipografi","Panduan identitas (guideline)"]', '["Brand analysis","Premium logo design","Color palette & typography","Identity guide (guideline)"]', 'Branding', 2, 'Branding & Identitas Visual', 'Branding & Visual Identity', 'Logo - Visual Identity - Brand Guideline', 'Logos - Visual Identities - Brand Guidelines', 'Paintbrush', 'Hubungi Kami', 'Contact Us', ''),
+('social', 'Social Media Management', 'Social Media Management', 'Konten, Strategi, Community', 'Content, Strategy, Community', 'Mulai dari Rp 4.5JT', 'Starting from Rp 4.5M', 'BEST VALUE', 'BEST VALUE', 'pink', '["Rencana konten bulanan","Desain feed estetik","Copywriting & hashtag","Laporan performa bulanan"]', '["Monthly content plan","Aesthetic feed design","Copywriting & hashtags","Monthly performance report"]', 'Social Media', 3, 'Manajemen Media Sosial', 'Social Media Management', 'Konten Kreatif - Optimasi Media Sosial - Laporan Kinerja Bulanan', 'Creative Content - Social Media Optimization - Monthly Performance Reports', 'Share2', 'Hubungi Kami', 'Contact Us', ''),
+('web', 'Website Development', 'Website Development', 'Landing Page, Company Profile', 'Landing Page, Company Profile', 'Mulai dari Rp 5JT', 'Starting from Rp 5M', 'STARTER', 'STARTER', 'green', '["Desain responsif & modern","Optimasi SEO dasar","Integrasi formulir/WA","Kecepatan akses tinggi"]', '["Responsive & modern design","Basic SEO optimization","Form/WA integration","High access speed"]', 'Website', 4, 'Website Development', 'Website Development', 'Desain Responsif - Landing Page - E-commerce', 'Responsive Design - Landing Pages - E-commerce', 'Globe', 'Hubungi Kami', 'Contact Us', '')
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `name_en` = VALUES(`name_en`), `subtitle` = VALUES(`subtitle`), `subtitle_en` = VALUES(`subtitle_en`), `price` = VALUES(`price`), `price_en` = VALUES(`price_en`), `badge` = VALUES(`badge`), `badge_en` = VALUES(`badge_en`), `bullets` = VALUES(`bullets`), `bullets_en` = VALUES(`bullets_en`), `category_title` = VALUES(`category_title`), `category_title_en` = VALUES(`category_title_en`), `category_subtitle` = VALUES(`category_subtitle`), `category_subtitle_en` = VALUES(`category_subtitle_en`), `category_icon` = VALUES(`category_icon`), `btn_text_id` = VALUES(`btn_text_id`), `btn_text_en` = VALUES(`btn_text_en`), `btn_link` = VALUES(`btn_link`);
 
 -- ============================================================
--- Table: portfolio_items (Portofolio)
+-- 4. Table: portfolio_items (Portfolio visual client listings)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `portfolio_items` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -101,6 +118,7 @@ CREATE TABLE IF NOT EXISTS `portfolio_items` (
   `title` VARCHAR(300) NOT NULL,
   `title_en` VARCHAR(300),
   `category` VARCHAR(200),
+  `category_en` VARCHAR(200),
   `description` TEXT,
   `description_en` TEXT,
   `type` ENUM('website','branding','marketing','event','insight') DEFAULT 'website',
@@ -108,51 +126,52 @@ CREATE TABLE IF NOT EXISTS `portfolio_items` (
   `sort_order` INT DEFAULT 0,
   `is_active` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `btn_text_id` VARCHAR(255) NOT NULL DEFAULT '',
+  `btn_text_en` VARCHAR(255) NOT NULL DEFAULT '',
+  `link_url` VARCHAR(512) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `portfolio_items` (`year`, `client`, `title`, `title_en`, `category`, `description`, `description_en`, `type`, `sort_order`) VALUES
-('2024', 'Pemerintah Kabupaten Malang', 'Website MATIC Malang', 'MATIC Malang Website', 'Government Web Development', 'Sistem informasi manajemen surat keterangan domisili perusahaan Kabupaten Malang.', 'Information management system for company domicile certificates in Malang Regency.', 'website', 1),
-('2024', 'Pemerintah Kabupaten Malang', 'Website DASTING Malang', 'DASTING Malang Website', 'Government Portal', 'Portal data statistik dan informasi Kabupaten Malang.', 'Statistical data and information portal for Malang Regency.', 'website', 2),
-('2024', 'Bakaoo Indonesia', 'Website Bakaoo', 'Bakaoo Website', 'E-Commerce Platform', 'Platform e-commerce untuk produk lokal dan UMKM Indonesia.', 'E-commerce platform for local products and Indonesian MSMEs.', 'website', 3),
-('2024', 'Bank BNI', 'Key Visual Bank BNI', 'Bank BNI Key Visual', 'Graphic Design & Branding', 'Design key visual untuk berbagai campaign dan program promosi Bank BNI.', 'Key visual design for various campaigns and promotional programs of Bank BNI.', 'branding', 4),
-('2024', 'Perumda Tirta Kanjuruhan', 'Dashboard Evaluasi Perumda Tirta Kanjuruhan', 'Perumda Tirta Kanjuruhan Evaluation Dashboard', 'Dashboard & Data Visualization', 'Dashboard evaluasi dan kinerja untuk monitoring operasional Perumda Tirta Kanjuruhan.', 'Evaluation and performance dashboard for operational monitoring of Perumda Tirta Kanjuruhan.', 'insight', 5),
-('2026', 'Perumda Tirta Kanjuruhan', 'Website MATWeb E-Perbaikan Tirta Kanjuruhan IC Malang', 'MATWeb E-Perbaikan Tirta Kanjuruhan IC Malang Website', 'Web Application', 'Sistem aplikasi web untuk manajemen dan tracking perbaikan infrastruktur Perumda Tirta Kanjuruhan.', 'Web application system for infrastructure repair management and tracking for Perumda Tirta Kanjuruhan.', 'website', 6),
-('2024', 'Kleefstra Jewels', 'Kleefstra Jewels', 'Kleefstra Jewels', 'Luxury Brand Website', 'Website e-commerce premium untuk brand perhiasan internasional.', 'Premium e-commerce website for an international jewelry brand.', 'website', 7),
-('2024', 'FEB Universitas Brawijaya', 'Social Media Handling FEB UB', 'FEB UB Social Media Handling', 'Social Media Management', 'Pengelolaan sosial media Department Manajemen Fakultas Ekonomi & Bisnis Universitas Brawijaya.', 'Social media management for the Management Department, Faculty of Economics & Business, Universitas Brawijaya.', 'marketing', 8),
-('2024', 'Syngenta', 'Key Visual Syngenta', 'Syngenta Key Visual', 'Graphic Design & Branding', 'Design key visual untuk campaign dan aktivitas marketing brand agribisnis multinasional Syngenta.', 'Key visual design for campaigns and marketing activities of multinational agribusiness brand Syngenta.', 'branding', 9);
+INSERT INTO `portfolio_items` (`year`, `client`, `title`, `title_en`, `category`, `category_en`, `description`, `description_en`, `type`, `sort_order`, `btn_text_id`, `btn_text_en`, `link_url`) VALUES
+('2024', 'Pemerintah Kabupaten Malang', 'Website MATIC Malang', 'MATIC Malang Website', 'Government Web Development', 'Government Web Development', 'Sistem informasi manajemen surat keterangan domisili perusahaan Kabupaten Malang.', 'Information management system for company domicile certificates in Malang Regency.', 'website', 1, 'Lihat Project', 'View Project', 'https://matic.malangkab.go.id'),
+('2024', 'Pemerintah Kabupaten Malang', 'Website DASTING Malang', 'DASTING Malang Website', 'Government Portal', 'Government Portal', 'Portal data statistik dan informasi Kabupaten Malang.', 'Statistical data and information portal for Malang Regency.', 'website', 2, 'Lihat Project', 'View Project', ''),
+('2024', 'Bakaoo Indonesia', 'Website Bakaoo', 'Bakaoo Website', 'E-Commerce Platform', 'E-Commerce Platform', 'Platform e-commerce untuk produk lokal dan UMKM Indonesia.', 'E-commerce platform for local products and Indonesian MSMEs.', 'website', 3, 'Lihat Project', 'View Project', ''),
+('2024', 'Bank BNI', 'Key Visual Bank BNI', 'Bank BNI Key Visual', 'Graphic Design & Branding', 'Graphic Design & Branding', 'Design key visual untuk berbagai campaign dan program promosi Bank BNI.', 'Key visual design for various campaigns and promotional programs of Bank BNI.', 'branding', 4, 'Lihat Project', 'View Project', '')
+ON DUPLICATE KEY UPDATE `client` = VALUES(`client`), `title` = VALUES(`title`), `title_en` = VALUES(`title_en`), `category` = VALUES(`category`), `category_en` = VALUES(`category_en`), `description` = VALUES(`description`), `description_en` = VALUES(`description_en`), `btn_text_id` = VALUES(`btn_text_id`), `btn_text_en` = VALUES(`btn_text_en`), `link_url` = VALUES(`link_url`);
 
 -- ============================================================
--- Table: blog_posts (Artikel Blog)
+-- 5. Table: blog_posts (Blog articles and detailed contents)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `blog_posts` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `category` VARCHAR(100),
+  `category_en` VARCHAR(100),
   `title` VARCHAR(400) NOT NULL,
   `title_en` VARCHAR(400),
   `description` TEXT,
   `description_en` TEXT,
   `content` LONGTEXT COMMENT 'Full article content (HTML/Markdown)',
+  `content_en` LONGTEXT COMMENT 'Full article content in English (HTML/Markdown)',
   `author` VARCHAR(100) DEFAULT 'Tim Indiekraf',
   `author_en` VARCHAR(100) DEFAULT 'Indiekraf Team',
   `type` ENUM('game','tech','design','economy','business','marketing','development') DEFAULT 'marketing',
   `image_url` VARCHAR(500),
+  `read_more_id` VARCHAR(100),
+  `read_more_en` VARCHAR(100),
+  `read_more_link` VARCHAR(500),
   `published_at` DATE,
   `is_published` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `blog_posts` (`category`, `title`, `title_en`, `description`, `description_en`, `author`, `author_en`, `type`, `image_url`, `published_at`) VALUES
-('DIGITAL MARKETING', 'Tren Digital Marketing 2025 yang Wajib Diketahui', '2025 Digital Marketing Trends You Must Know', 'Pelajari strategi digital marketing terkini yang dapat membantu bisnis Anda tumbuh di era digital.', 'Learn the latest digital marketing strategies to help your business grow in the digital era.', 'Tim Indiekraf', 'Indiekraf Team', 'marketing', '/gambar.jpg', '2024-01-12'),
-('BRANDING', 'Panduan Lengkap Membangun Brand Identity yang Kuat', 'Complete Guide to Building a Strong Brand Identity', 'Langkah-langkah praktis untuk menciptakan identitas brand yang memorable.', 'Practical steps to create a memorable brand identity.', 'Tim Indiekraf', 'Indiekraf Team', 'design', '/gambar.jpg', '2024-01-10'),
-('UI/UX DESIGN', 'UI/UX Design: Prinsip Dasar untuk Pemula', 'UI/UX Design: Basic Principles for Beginners', 'Memahami fundamental UI/UX design untuk menciptakan pengalaman pengguna optimal.', 'Understanding fundamental UI/UX design to create optimal user experiences.', 'Tim Indiekraf', 'Indiekraf Team', 'design', '/gambar.jpg', '2024-01-08'),
-('WEB DEVELOPMENT', 'Cara Mengoptimalkan Website untuk SEO', 'How to Optimize Your Website for SEO', 'Tips dan trik meningkatkan peringkat website Anda di mesin pencari Google.', 'Tips and tricks to improve your website ranking on Google search engine.', 'Tim Indiekraf', 'Indiekraf Team', 'development', '/gambar.jpg', '2024-01-05'),
-('SOCIAL MEDIA', 'Social Media Marketing: Strategi Konten yang Efektif', 'Social Media Marketing: Effective Content Strategy', 'Panduan membuat konten social media yang engaging dan meningkatkan awareness.', 'Guide to creating engaging social media content and increasing awareness.', 'Tim Indiekraf', 'Indiekraf Team', 'marketing', '/gambar.jpg', '2024-01-03'),
-('BUSINESS INSIGHT', 'Pentingnya Riset Pasar dalam Pengembangan Produk', 'The Importance of Market Research in Product Development', 'Mengapa riset pasar menjadi kunci kesuksesan dalam meluncurkan produk baru.', 'Why market research is key to success when launching new products.', 'Tim Indiekraf', 'Indiekraf Team', 'business', '/gambar.jpg', '2024-01-01');
+INSERT INTO `blog_posts` (`category`, `category_en`, `title`, `title_en`, `description`, `description_en`, `content`, `author`, `author_en`, `type`, `image_url`, `published_at`) VALUES
+('DIGITAL MARKETING', 'DIGITAL MARKETING', 'Tren Digital Marketing 2025 yang Wajib Diketahui', '2025 Digital Marketing Trends You Must Know', 'Pelajari strategi digital marketing terkini yang dapat membantu bisnis Anda tumbuh di era digital.', 'Learn the latest digital marketing strategies to help your business grow in the digital era.', '<p>Ini adalah isi artikel detail tentang tren pemasaran digital 2025...</p>', 'Tim Indiekraf', 'Indiekraf Team', 'marketing', '/gambar.jpg', '2024-01-12'),
+('BRANDING', 'BRANDING', 'Panduan Lengkap Membangun Brand Identity yang Kuat', 'Complete Guide to Building a Strong Brand Identity', 'Langkah-langkah praktis untuk menciptakan identitas brand yang memorable.', 'Practical steps to create a memorable brand identity.', '<p>Membangun brand identity membutuhkan riset mendalam...</p>', 'Tim Indiekraf', 'Indiekraf Team', 'design', '/gambar.jpg', '2024-01-10')
+ON DUPLICATE KEY UPDATE `title` = VALUES(`title`), `title_en` = VALUES(`title_en`), `description` = VALUES(`description`), `description_en` = VALUES(`description_en`), `content` = VALUES(`content`);
 
 -- ============================================================
--- Table: admin_users (Akun Admin CMS)
+-- 6. Table: admin_users (CMS Administrator Access Accounts)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `admin_users` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -160,11 +179,9 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
   `password_hash` VARCHAR(300) NOT NULL COMMENT 'bcrypt hash',
   `name` VARCHAR(200),
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Default: username=admin, password=indiekraf2024
--- (Di-generate ulang oleh server saat pertama kali dijalankan jika tabel kosong)
--- Password hash untuk "indiekraf2024":
+-- Seed default admin credential: username="indiekraf", password="indiekrafkreatifdanmenyenangkan"
 INSERT INTO `admin_users` (`username`, `password_hash`, `name`) VALUES
-('admin', '$2b$10$rOzJqfTz0z6z6z6z6z6z6OeKkKkKkKkKkKkKkKkKkKkKkKkKkKkK', 'Administrator');
--- CATATAN: Jalankan `npm run init-admin` untuk generate hash yang benar
+('indiekraf', '$2a$10$t71YR/InN05tdBDUUb/Mvet5Hc6zlOJ8nAohZU/iX1WWjI3muLKou', 'Indiekraf Creative')
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);

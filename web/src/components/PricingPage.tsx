@@ -35,6 +35,9 @@ interface PlanItem {
   badge: 'STARTER' | 'POPULER' | 'PREMIUM' | 'BEST VALUE';
   bullets: string[];
   bullets_en: string[];
+  btn_link?: string;
+  btn_text_id?: string;
+  btn_text_en?: string;
 }
 
 interface CategorySection {
@@ -782,7 +785,7 @@ function PricingSection({ section, language, onScrollToContact }: PricingSection
                     className={`block w-full py-2 px-3.5 rounded-[10px] text-[10px] font-extrabold tracking-wide text-center transition-all duration-300 cursor-pointer ${
                       isBestValue
                         ? 'bg-white text-[#0A2472] hover:bg-slate-50 shadow-md'
-                        : 'bg-white border-2 border-[#0A2472] text-[#0A2472] hover:bg-[#EEF3FF]'
+                        : 'bg-[#2563EB] text-white hover:bg-blue-700 shadow-sm'
                     }`}
                     id={`price-btn-${plan.id}`}
                   >
@@ -794,7 +797,7 @@ function PricingSection({ section, language, onScrollToContact }: PricingSection
                     className={`w-full py-2 px-3.5 rounded-[10px] text-[10px] font-extrabold tracking-wide text-center transition-all duration-300 cursor-pointer ${
                       isBestValue
                         ? 'bg-white text-[#0A2472] hover:bg-slate-50 shadow-md'
-                        : 'bg-white border-2 border-[#0A2472] text-[#0A2472] hover:bg-[#EEF3FF]'
+                        : 'bg-[#2563EB] text-white hover:bg-blue-700 shadow-sm'
                     }`}
                     id={`price-btn-${plan.id}`}
                   >

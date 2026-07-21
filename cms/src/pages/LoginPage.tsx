@@ -128,10 +128,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               )}
             </button>
           </form>
-
-          <p className="text-center text-white/30 text-xs font-medium mt-6">
-            Default: admin / indiekraf2024
-          </p>
         </div>
       </div>
     </div>

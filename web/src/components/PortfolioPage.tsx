@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ArrowRight, 
+import {
+  ArrowRight,
   ExternalLink,
   Globe,
   Palette,
@@ -56,28 +56,32 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
 
   const [activeFilter, setActiveFilter] = useState('all');
 
-  const defaultFilters = [
-    { id: 'website', label_id: 'Website & Web Apps', label_en: 'Website & Web Apps' },
-    { id: 'branding', label_id: 'Branding & Identitas', label_en: 'Branding & Identity' },
-    { id: 'marketing', label_id: 'Digital Marketing', label_en: 'Digital Marketing' },
-    { id: 'event', label_id: 'Event & Academy', label_en: 'Event & Academy' },
-    { id: 'insight', label_id: 'Riset & Wawasan', label_en: 'Research & Insights' },
-  ];
+const defaultFilters = [
+  { id: 'website', label_id: 'Website & Web Apps', label_en: 'Website & Web Apps' },
+  { id: 'branding', label_id: 'Branding & Identitas', label_en: 'Branding & Identity' },
+  { id: 'marketing', label_id: 'Digital Marketing', label_en: 'Digital Marketing' },
+  { id: 'event', label_id: 'Event & Academy', label_en: 'Event & Academy' },
+  { id: 'insight', label_id: 'Riset & Wawasan', label_en: 'Research & Insights' },
+];
 
-  let dynamicCategories = defaultFilters;
-  if (settings['portfolio_categories']) {
-    try {
-      dynamicCategories = JSON.parse(settings['portfolio_categories']);
-    } catch {}
-  }
+let dynamicCategories = defaultFilters;
 
-  const filters = [
-    { id: 'all', label: language === 'id' ? 'Semua Karya' : 'All Works' },
-    ...dynamicCategories.map(cat => ({
-      id: cat.id,
-      label: language === 'id' ? cat.label_id : cat.label_en
-    }))
-  ];
+if (settings['portfolio_categories']) {
+  try {
+    dynamicCategories = JSON.parse(settings['portfolio_categories']);
+  } catch {}
+}
+
+const filters = [
+  {
+    id: 'all',
+    label: language === 'id' ? 'Semua Karya' : 'All Works'
+  },
+  ...dynamicCategories.map(cat => ({
+    id: cat.id,
+    label: language === 'id' ? cat.label_id : cat.label_en
+  }))
+];
 
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -104,7 +108,7 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
           setProjects(mappedProjects);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [language]);
 
   const containerVariants = {
@@ -119,25 +123,30 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30, scale: 0.98 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       scale: 1,
-      transition: { 
-        duration: 0.6, 
-        ease: [0.16, 1, 0.3, 1] 
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1] as const
       }
     }
   };
 
-  const filteredProjects = activeFilter === 'all' 
-    ? projects 
+  const filteredProjects =
+  activeFilter === 'all'
+    ? projects
     : projects.filter(p => {
         const filterObj = filters.find(f => f.id === activeFilter);
-        return filterObj && (
-          (p.category || '').toLowerCase().includes(filterObj.id.toLowerCase()) ||
-          (p.category || '').toLowerCase() === filterObj.label.toLowerCase() ||
-          (p.category_en || '').toLowerCase() === filterObj.label.toLowerCase()
+
+        return (
+          filterObj &&
+          (
+            (p.category || '').toLowerCase().includes(filterObj.id.toLowerCase()) ||
+            (p.category || '').toLowerCase() === filterObj.label.toLowerCase() ||
+            (p.category_en || '').toLowerCase() === filterObj.label.toLowerCase()
+          )
         );
       });
 
@@ -186,9 +195,9 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
                 }}
                 className={`absolute w-24 h-24 lg:w-32 lg:h-32 flex items-center justify-center drop-shadow-[0_20px_20px_rgba(0,0,0,0.15)] ${className}`}
               >
-                <img 
-                  src={src} 
-                  alt={alt} 
+                <img
+                  src={src}
+                  alt={alt}
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
@@ -198,16 +207,16 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
             ))}
           </div>
         )}
-        <motion.div 
+        <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: false }}
           variants={containerVariants}
           className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10"
         >
-          
+
           {/* Pill Badge */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-[10px] text-[10px] font-bold tracking-widest bg-blue-50 text-[#0A2472] border border-blue-100 mb-8"
           >
@@ -216,7 +225,7 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
           </motion.div>
 
           {/* Main Title */}
-          <motion.h1 
+          <motion.h1
             variants={itemVariants}
             className="text-4xl md:text-5xl lg:text-6xl font-sans font-extrabold text-[#0A2472] tracking-tight leading-[1.1] mb-6"
           >
@@ -237,31 +246,31 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
       {/* 2. Filters & Grid Section */}
       <section className="w-full py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          
+
           {/* Filter Tabs */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="flex flex-wrap justify-center gap-3 mb-16"
           >
-            {filters.map((filter) => (
-              <button
+            {filters
+              .filter(filter => filter.id !== 'all')
+              .map((filter) => (<button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                className={`px-6 py-2.5 rounded-[10px] text-xs font-bold transition-all duration-300 border ${
-                  activeFilter === filter.id
-                    ? 'bg-[#2563eb] text-white border-[#2563eb] shadow-lg shadow-blue-500/20 scale-105'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30'
-                }`}
+                className={`px-6 py-2.5 rounded-[10px] text-xs font-bold transition-all duration-300 border ${activeFilter === filter.id
+                  ? 'bg-[#2563eb] text-white border-[#2563eb] shadow-lg shadow-blue-500/20 scale-105'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30'
+                  }`}
               >
                 {filter.label}
               </button>
-            ))}
+              ))}
           </motion.div>
 
           {/* Projects Grid */}
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -285,11 +294,11 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0A2472]/90 to-transparent z-0 group-hover:from-[#0A2472]/95 transition-colors duration-500" />
                       </>
                     )}
-                    
+
                     {!project.image_url && (
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/10 transition-colors duration-500" />
                     )}
-                    
+
                     <div className="absolute top-6 left-6 px-3 py-1 bg-white/10 rounded-[10px] text-[10px] font-bold tracking-widest backdrop-blur-sm border border-white/10 z-10">
                       {project.year}
                     </div>
@@ -313,7 +322,7 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageP
                         {project.description}
                       </p>
                     </div>
-                    
+
                     {project.link_url ? (
                       <a
                         href={project.link_url}

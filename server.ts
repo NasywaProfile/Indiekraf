@@ -10,6 +10,9 @@ import portfolioRouter from "./server/routes/portfolio.js";
 import servicesRouter from "./server/routes/services.js";
 import pricingRouter from "./server/routes/pricing.js";
 import authRouter from "./server/routes/auth.js";
+import newsletterRouter from "./server/routes/newsletter.js";
+import pressReleaseRouter from "./server/routes/press-release.js";
+import contactRouter from "./server/routes/contact.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -45,6 +48,9 @@ async function startServer() {
   app.use("/api/portfolio", portfolioRouter);
   app.use("/api/services", servicesRouter);
   app.use("/api/pricing", pricingRouter);
+  app.use("/api/newsletter", newsletterRouter);
+  app.use("/api/press-release", pressReleaseRouter);
+  app.use("/api/contact", contactRouter);
 
   // Image upload endpoint
   app.post("/api/upload", upload.single("image"), (req, res) => {
