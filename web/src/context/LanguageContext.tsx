@@ -38,7 +38,7 @@ const translations: Record<LanguageType, Record<string, string>> = {
     'about.title': 'Mendorong Ekosistem Kreatif Indonesia ke Tingkat Dunia',
     'about.content1': 'Berdiri sejak tahun 2018, Indiekraf Indonesia merupakan portal media yang menitikberatkan pada ekonomi dan industri kreatif di Indonesia. Kami hadir secara independen dan berperan sebagai penyambung informasi penting dalam menggambarkan perkembangan ekonomi dan industri kreatif, mencakup pelaku utama, acara, tips & trik, opini, pengembangan komunitas, edukasi, hingga kebijakan publik.',
     'about.content2': 'Tujuan kami adalah menjadi kontributor utama dalam mewujudkan Industri Kreatif sebagai pilar utama dalam ekonomi Indonesia pada tahun 2025, serta menjadi rujukan dalam sumber informasi terkait industri kreatif di Indonesia.',
-    'about.content3': 'Selain media saat ini kami juga menawarkan berbagai layanan seperti jasa pengembangan produk, aktivasi program, riset hingga sertifikasi.',
+    'about.content3': 'Selain sebagai media, kami juga menawarkan berbagai layanan seperti jasa pengembangan produk, aktivasi program, riset, hingga sertifikasi.',
 
     // Stats
     'stats.title': 'Ratusan Bisnis & Institusi Sudah Tumbuh Bersama Kami.',
@@ -47,7 +47,7 @@ const translations: Record<LanguageType, Record<string, string>> = {
     'stats.follower': 'Pengikut Media Sosial',
     'stats.channel': 'Saluran Media Sosial',
     'stats.reach': 'Jangkauan & Kunjungan Bulanan',
-    'stats.bottom': 'Dari startup lokal hingga kampus ternama — kami hadir sebagai mitra kreatif yang bisa diandalkan untuk tumbuh.',
+    'stats.bottom': 'Dari startup lokal hingga kampus ternama — kami hadir sebagai mitra kreatif yang dapat diandalkan untuk mendorong pertumbuhan bisnis Anda.',
 
     // Services
     'services.title': 'Layanan & Ekosistem Kami',
@@ -169,7 +169,7 @@ const translations: Record<LanguageType, Record<string, string>> = {
 
     // Why Choose Us
     'why.title': 'Partner Kreatif Tepercaya untuk Pertumbuhan Berkelanjutan',
-    'why.subtitle': 'Partner kolaboratif yang memahami kebutuhan bisnis dan menghasilkan solusi digital yang terukur',
+    'why.subtitle': 'Mitra kolaboratif yang memahami kebutuhan bisnis dan menghadirkan solusi digital yang terukur',
     'why.feat.integrated.title': 'Solusi Terintegrasi',
     'why.feat.integrated.desc': 'Dari strategi hingga eksekusi — setiap layanan yang Anda butuhkan berada dalam satu ekosistem yang terhubung, dibangun untuk hasil nyata.',
     'why.feat.datadriven.title': 'Pendekatan Berbasis Data',
@@ -186,7 +186,7 @@ const translations: Record<LanguageType, Record<string, string>> = {
     // CTA
     'cta.work': 'Mari Bekerja Sama',
     'cta.title': 'Siap Membangun Sesuatu yang Luar Biasa?',
-    'cta.subtitle': 'Hubungi Tim Indiekraf Untuk Konsultasi Layanan, Request Proposal, dan Estimasi Biaya.',
+    'cta.subtitle': 'Hubungi Tim Indiekraf untuk Konsultasi Layanan, Permintaan Proposal, dan Estimasi Biaya.',
     'cta.whatsapp': 'Chat WhatsApp',
 
     // Footer
@@ -350,7 +350,7 @@ const translations: Record<LanguageType, Record<string, string>> = {
 
     // Why Choose Us
     'why.title': 'Trusted Creative Partner for Sustainable Growth',
-    'why.subtitle': 'Collaborative partner understanding business needs and delivering measurable digital solutions',
+    'why.subtitle': 'A collaborative partner that understands business needs and delivers measurable digital solutions',
     'why.feat.integrated.title': 'Integrated Solutions',
     'why.feat.integrated.desc': 'From strategy to execution — every service you need is within one connected ecosystem, built for real results.',
     'why.feat.datadriven.title': 'Data-Driven Approach',
@@ -366,7 +366,7 @@ const translations: Record<LanguageType, Record<string, string>> = {
 
     // CTA
     'cta.work': "Let's work together",
-    'cta.title': 'Ready To Build Something Great?',
+    'cta.title': 'Ready to Build Something Great?',
     'cta.subtitle': 'Contact Indiekraf Team for Service Consultation, Proposal Requests, and Cost Estimates.',
     'cta.whatsapp': 'Chat WhatsApp',
 

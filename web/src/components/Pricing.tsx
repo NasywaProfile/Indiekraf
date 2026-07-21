@@ -24,7 +24,7 @@ interface PricingProps {
 
 export default function Pricing({ onScrollTo }: PricingProps) {
   const { style } = useTheme();
-  const { t, language } = useLanguage();
+  const { t, language, settings } = useLanguage();
   const [plans, setPlans] = React.useState<any[]>(pricingPlans);
 
   React.useEffect(() => {
@@ -139,13 +139,15 @@ export default function Pricing({ onScrollTo }: PricingProps) {
                 </div>
 
                 {/* Main Action Button */}
-                <button
-                  onClick={() => onScrollTo('contact')}
+                <a
+                  href={settings?.['cta_whatsapp_url'] || 'https://api.whatsapp.com/send/?phone=6282337576338&text&type=phone_number&app_absent=0'}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`w-full py-2 px-3.5 rounded-[10px] text-[10px] font-extrabold tracking-wide text-center transition-all duration-200 cursor-pointer ${theme.btnBg}`}
                   id={`price-btn-${plan.id}`}
                 >
-                  {t('pricing.btnDetail')}
-                </button>
+                  {language === 'id' ? 'Hubungi Kami' : 'Contact Us'}
+                </a>
 
                 {/* Divider & Feature list */}
                 <ul className={`mt-3.5 space-y-1.5 border-t pt-3.5 text-left flex-1 ${isBestValue ? 'border-white/10' : 'border-[#0A2472]/10'}`}>

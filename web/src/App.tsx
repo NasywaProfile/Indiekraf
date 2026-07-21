@@ -19,6 +19,7 @@ import ServicesPage from './components/ServicesPage';
 import PortfolioPage from './components/PortfolioPage';
 import BlogPage from './components/BlogPage';
 import { ContactPage } from './components/ContactPage';
+import PageOnProgress from './components/PageOnProgress';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
@@ -89,7 +90,7 @@ function AppContent() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'home' | 'pricing' | 'about' | 'services' | 'portfolio' | 'blog' | 'contact'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'pricing' | 'about' | 'services' | 'portfolio' | 'blog' | 'contact' | 'progress'>('home');
   const { t } = useLanguage();
 
   const handleScrollTo = (rawId: string) => {
@@ -282,6 +283,7 @@ function AppContent() {
               <PortfolioPage 
                 onBackToHome={() => handleScrollTo('home')} 
                 onScrollToContact={() => handleScrollTo('contact')} 
+                onPageProgress={() => setCurrentPage('progress')}
               />
               {/* Section 7: Let's Work Together (CTA) */}
               <div id="contact" className="relative z-30 bg-white">
@@ -296,6 +298,8 @@ function AppContent() {
                 <CTA isCombined={false} />
               </div>
             </>
+          ) : currentPage === 'progress' ? (
+            <PageOnProgress onBackToPortfolio={() => setCurrentPage('portfolio')} />
           ) : (
             <>
               <AboutPage 

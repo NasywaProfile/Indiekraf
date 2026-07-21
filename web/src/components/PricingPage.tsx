@@ -13,7 +13,8 @@ import {
   Search,
   Globe,
   MessageSquare,
-  Megaphone
+  Megaphone,
+  Layout
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -61,49 +62,49 @@ const pricingData: CategorySection[] = [
         id: 'p-web-ads',
         name: 'Iklan di Website',
         name_en: 'Website Advertising',
-        subtitle: 'Kami pasang Konten anda di Website indiekraf.com',
-        subtitle_en: 'We place your Content on the indiekraf.com Website',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 500.000 / Bulan',
         price_en: 'Rp 500K / Month',
         badge: 'STARTER',
-        bullets: ['Kami pasang Konten anda di Website indiekraf.com'],
-        bullets_en: ['We place your Content on the indiekraf.com Website']
+        bullets: [],
+        bullets_en: []
       },
       {
         id: 'p-advertorial-news',
         name: 'Advertorial Berita',
         name_en: 'News Advertorial',
-        subtitle: 'Kami publish berita / artikel anda di Website Indiekraf.com',
-        subtitle_en: 'We publish your news / articles on the Indiekraf.com Website',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 300.000 / Post',
         price_en: 'Rp 300K / Post',
         badge: 'STARTER',
-        bullets: ['Kami publish berita / artikel anda di Website Indiekraf.com'],
-        bullets_en: ['We publish your news / articles on the Indiekraf.com Website']
+        bullets: [],
+        bullets_en: []
       },
       {
         id: 'p-event-publishing',
         name: 'Event Publishing',
         name_en: 'Event Publishing',
-        subtitle: 'Kami publish event anda di Website dan Seluruh Sosial Media Indiekraf Indonesia',
-        subtitle_en: 'We publish your event on the Website and All Social Media of Indiekraf Indonesia',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 700.000 / Event',
         price_en: 'Rp 700K / Event',
         badge: 'STARTER',
-        bullets: ['Kami publish event anda di Website dan Seluruh Sosial Media Indiekraf Indonesia'],
-        bullets_en: ['We publish your event on the Website and All Social Media of Indiekraf Indonesia']
+        bullets: [],
+        bullets_en: []
       },
       {
         id: 'p-umkm-promotion',
         name: 'Promosi Bisnis UMKM',
         name_en: 'MSME Business Promotion',
-        subtitle: 'Untuk kamu pelaku UMKM dan Ekonomi Kreatif dapatkan Harga Khusus untuk di Highlight di Web Indiekraf dan Sosial Media Indiekraf',
-        subtitle_en: 'For MSME and Creative Economy players, get Special Prices to be Highlighted on Indiekraf Web and Indiekraf Social Media',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 150.000 / Post',
         price_en: 'Rp 150K / Post',
         badge: 'STARTER',
-        bullets: ['Untuk kamu pelaku UMKM dan Ekonomi Kreatif dapatkan Harga Khusus untuk di Highlight di Web Indiekraf dan Sosial Media Indiekraf'],
-        bullets_en: ['For MSME and Creative Economy players, get Special Prices to be Highlighted on Indiekraf Web and Indiekraf Social Media']
+        bullets: [],
+        bullets_en: []
       }
     ]
   },
@@ -120,73 +121,73 @@ const pricingData: CategorySection[] = [
         id: 'p-sm-handling',
         name: 'Social Media Handling',
         name_en: 'Social Media Handling',
-        subtitle: 'Handling sosial media untuk promosi bisnis anda',
-        subtitle_en: 'Social media handling for your business promotion',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000 / Bulan',
         price_en: 'Rp 5M / Month',
         badge: 'STARTER',
-        bullets: ['Handling sosial media untuk promosi bisnis anda'],
-        bullets_en: ['Social media handling for your business promotion']
+        bullets: ['Pengelolaan akun media sosial', 'Jadwal posting terstruktur', 'Laporan performa bulanan'],
+        bullets_en: ['Social media account management', 'Structured posting schedule', 'Monthly performance report']
       },
       {
         id: 'p-sm-consulting',
         name: 'Social Media Consulting',
         name_en: 'Social Media Consulting',
-        subtitle: 'Konsultasi strategi dan positioning sosial media',
-        subtitle_en: 'Social media strategy and positioning consulting',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 500.000 / Session',
         price_en: 'Rp 500K / Session',
         badge: 'STARTER',
-        bullets: ['Konsultasi strategi dan positioning sosial media'],
-        bullets_en: ['Social media strategy and positioning consulting']
+        bullets: ['Analisis strategi media sosial', 'Saran positioning merek', 'Rekomendasi konten'],
+        bullets_en: ['Social media strategy analysis', 'Brand positioning advice', 'Content recommendations']
       },
       {
         id: 'p-content-seo',
         name: 'Content Writer & SEO',
         name_en: 'Content Writer & SEO',
-        subtitle: 'Handle penulisan artikel / blog / informasi anda dengan standar SEO Google untuk mempermudah indexing website Anda',
-        subtitle_en: 'Handle writing articles / blogs / your information with Google SEO standards to facilitate indexing of your website',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 1.500.000 / 5 Konten Artikel',
         price_en: 'Rp 1.5M / 5 Article Contents',
         badge: 'STARTER',
-        bullets: ['Handle penulisan artikel / blog / informasi anda dengan standar SEO Google untuk mempermudah indexing website Anda'],
-        bullets_en: ['Handle writing articles / blogs / your information with Google SEO standards to facilitate indexing of your website']
+        bullets: ['Penulisan artikel & blog', 'Optimasi SEO Google', '5 konten artikel / paket'],
+        bullets_en: ['Article & blog writing', 'Google SEO optimization', '5 article contents / package']
       },
       {
         id: 'p-video-reels',
         name: 'Video Reels / Content',
         name_en: 'Video Reels / Content',
-        subtitle: 'Pembuatan konten video dengan durasi singkat',
-        subtitle_en: 'Short duration video content creation',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 500.000 / Content',
         price_en: 'Rp 500K / Content',
         badge: 'STARTER',
-        bullets: ['Pembuatan konten video dengan durasi singkat'],
-        bullets_en: ['Short duration video content creation']
+        bullets: ['Produksi video pendek', 'Editing profesional', 'Siap upload ke media sosial'],
+        bullets_en: ['Short video production', 'Professional editing', 'Ready to upload to social media']
       },
       {
         id: 'p-ecommerce-handling',
         name: 'E-Commerce Handling',
         name_en: 'E-Commerce Handling',
-        subtitle: 'Handle akun e-commerce anda untuk melakukan optimalisasi dan aktivasi bisnis',
-        subtitle_en: 'Handle your e-commerce account to optimize and activate business',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000 / Bulan',
         price_en: 'Rp 5M / Month',
         badge: 'STARTER',
-        bullets: ['Handle akun e-commerce anda untuk melakukan optimalisasi dan aktivasi bisnis'],
-        bullets_en: ['Handle your e-commerce account to optimize and activate business']
+        bullets: ['Manajemen akun e-commerce', 'Optimalisasi listing produk', 'Aktivasi & promosi bisnis'],
+        bullets_en: ['E-commerce account management', 'Product listing optimization', 'Business activation & promotion']
       },
       {
         id: 'p-live-streaming',
         name: 'Live Streaming & Zoom Meeting',
         name_en: 'Live Streaming & Zoom Meeting',
-        subtitle: 'Handle proses live streaming dan zoom meeting account',
-        subtitle_en: 'Handle live streaming process and zoom meeting account',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 500.000 / Session',
         price_en: 'Rp 500K / Session',
         badge: 'STARTER',
-        bullets: ['Handle proses live streaming dan zoom meeting account'],
-        bullets_en: ['Handle live streaming process and zoom meeting account']
+        bullets: ['Pengaturan sesi live streaming', 'Manajemen akun Zoom Meeting', 'Dukungan teknis sesi'],
+        bullets_en: ['Live streaming session setup', 'Zoom Meeting account management', 'Technical session support']
       }
     ]
   },
@@ -203,73 +204,73 @@ const pricingData: CategorySection[] = [
         id: 'b-identity-dev',
         name: 'Brand Identity Development',
         name_en: 'Brand Identity Development',
-        subtitle: 'Handling pembuatan brand identity untuk membangun bisnis anda.',
-        subtitle_en: 'Brand identity development handling to build your business.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handling pembuatan brand identity untuk membangun bisnis anda.'],
-        bullets_en: ['Brand identity development handling to build your business.']
+        bullets: ['Pembuatan identitas merek lengkap', 'Panduan brand guideline', 'Logo & visual identity'],
+        bullets_en: ['Complete brand identity creation', 'Brand guideline development', 'Logo & visual identity']
       },
       {
         id: 'b-key-visual-sm',
         name: 'Key Visual Social Media',
         name_en: 'Key Visual Social Media',
-        subtitle: 'Handle pembuatan illustrasi/gambar sosial media untuk pemasaran usaha/bisnis.',
-        subtitle_en: 'Social media illustration/image creation handling for business marketing.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000 / Bulan',
         price_en: 'Rp 5M / Month',
         badge: 'STARTER',
-        bullets: ['Handle pembuatan illustrasi/gambar sosial media untuk pemasaran usaha/bisnis.'],
-        bullets_en: ['Social media illustration/image creation handling for business marketing.']
+        bullets: ['Desain ilustrasi media sosial', 'Konten visual pemasaran', 'Format siap pakai'],
+        bullets_en: ['Social media illustration design', 'Marketing visual content', 'Ready-to-use formats']
       },
       {
         id: 'b-activation-promo',
         name: 'Brand Activation / Promotion Tools',
         name_en: 'Brand Activation / Promotion Tools',
-        subtitle: 'Handle pembuatan alat promosi anda untuk meningkatkan brand bisnis.',
-        subtitle_en: 'Promotion tools creation handling to enhance business brand.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 6.000.000',
         price_en: 'Rp 6M',
         badge: 'STARTER',
-        bullets: ['Handle pembuatan alat promosi anda untuk meningkatkan brand bisnis.'],
-        bullets_en: ['Promotion tools creation handling to enhance business brand.']
+        bullets: ['Desain materi promosi', 'Flyer, banner & poster', 'Peningkatan brand awareness'],
+        bullets_en: ['Promotional material design', 'Flyers, banners & posters', 'Brand awareness enhancement']
       },
       {
         id: 'b-iconography',
         name: 'Iconography',
         name_en: 'Iconography',
-        subtitle: 'Handling pembuatan design icon/ simbol.',
-        subtitle_en: 'Icon/symbol design creation handling.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handling pembuatan design icon/ simbol.'],
-        bullets_en: ['Icon/symbol design creation handling.']
+        bullets: ['Desain ikon kustom', 'Set simbol merek', 'Format vektor & PNG'],
+        bullets_en: ['Custom icon design', 'Brand symbol set', 'Vector & PNG formats']
       },
       {
         id: 'b-packaging-label',
         name: 'Packaging & Label Design',
         name_en: 'Packaging & Label Design',
-        subtitle: 'Handle design packaging dan label untuk optimalisasi bisnis anda.',
-        subtitle_en: 'Packaging and label design handling to optimize your business.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handle design packaging dan label untuk optimalisasi bisnis anda.'],
-        bullets_en: ['Packaging and label design handling to optimize your business.']
+        bullets: ['Desain kemasan produk', 'Label & tag bisnis', 'Siap cetak & produksi'],
+        bullets_en: ['Product packaging design', 'Business labels & tags', 'Print-ready & production-ready']
       },
       {
         id: 'b-book-layout',
         name: 'Book & Layout Design',
         name_en: 'Book & Layout Design',
-        subtitle: 'Handle pembuatan design layout dan buku untuk usaha/bisnis anda.',
-        subtitle_en: 'Layout and book design creation handling for your business.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handle pembuatan design layout dan buku untuk usaha/bisnis anda.'],
-        bullets_en: ['Layout and book design creation handling for your business.']
+        bullets: ['Desain layout publikasi', 'Buku, modul & katalog', 'Siap cetak profesional'],
+        bullets_en: ['Publication layout design', 'Books, modules & catalogues', 'Professional print-ready']
       }
     ]
   },
@@ -286,73 +287,73 @@ const pricingData: CategorySection[] = [
         id: 'p-desktop-web-native-app',
         name: 'Desktop (Web, Native App)',
         name_en: 'Desktop (Web, Native App)',
-        subtitle: 'Handling desain pengembangan dan pemeliharaan web/aplikasi yang mudah digunakan.',
-        subtitle_en: 'Handling the design, development and maintenance of easy-to-use web/apps.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handling desain pengembangan dan pemeliharaan web/aplikasi yang mudah digunakan.'],
-        bullets_en: ['Handling the design, development and maintenance of easy-to-use web/apps.']
+        bullets: ['Desain UI/UX desktop', 'Pengembangan web & native app', 'Pemeliharaan berkala'],
+        bullets_en: ['Desktop UI/UX design', 'Web & native app development', 'Regular maintenance']
       },
       {
         id: 'p-mobile-app-responsive-adaptive',
         name: 'Mobile (App, Responsive, Adaptive)',
         name_en: 'Mobile (App, Responsive, Adaptive)',
-        subtitle: 'Handling pembuatan mobile app untuk usaha/bisnis anda.',
-        subtitle_en: 'Handling mobile app development for your business.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 10.000.000',
         price_en: 'Rp 10M',
         badge: 'STARTER',
-        bullets: ['Handling pembuatan mobile app untuk usaha/bisnis anda.'],
-        bullets_en: ['Handling mobile app development for your business.']
+        bullets: ['Desain UI/UX mobile', 'Pengembangan aplikasi mobile', 'Responsive & adaptive'],
+        bullets_en: ['Mobile UI/UX design', 'Mobile app development', 'Responsive & adaptive']
       },
       {
         id: 'p-dashboard-design',
         name: 'Dashboard',
         name_en: 'Dashboard',
-        subtitle: 'Handle desain pembuatan dan pemeliharaan dashboard untuk usaha/bisnis anda.',
-        subtitle_en: 'Handle the design, creation and maintenance of dashboard for your business.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handle desain pembuatan dan pemeliharaan dashboard untuk usaha/bisnis anda.'],
-        bullets_en: ['Handle the design, creation and maintenance of dashboard for your business.']
+        bullets: ['Desain UI dasbor', 'Visualisasi data interaktif', 'Pemeliharaan berkala'],
+        bullets_en: ['Dashboard UI design', 'Interactive data visualization', 'Regular maintenance']
       },
       {
         id: 'p-flow-wireframe',
         name: 'Flow & Wireframe',
         name_en: 'Flow & Wireframe',
-        subtitle: 'Handling pembuatan struktur alur kerja pada aplikasi.',
-        subtitle_en: 'Handling the creation of workflow structures in applications.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Handling pembuatan struktur alur kerja pada aplikasi.'],
-        bullets_en: ['Handling the creation of workflow structures in applications.']
+        bullets: ['Pemetaan alur kerja (flow)', 'Wireframe & prototipe awal', 'Dokumentasi struktur aplikasi'],
+        bullets_en: ['Workflow mapping (flow)', 'Wireframe & initial prototype', 'Application structure documentation']
       },
       {
         id: 'p-ux-audit-usability-testing',
         name: 'UX Audit & Usability Testing',
         name_en: 'UX Audit & Usability Testing',
-        subtitle: 'Melakukan review dan pengujian terkait user experience terhadap produk.',
-        subtitle_en: 'Conduct reviews and testing related to user experience on products.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Melakukan review dan pengujian terkait user experience terhadap produk.'],
-        bullets_en: ['Conduct reviews and testing related to user experience on products.']
+        bullets: ['Audit pengalaman pengguna', 'Pengujian kegunaan (usability)', 'Rekomendasi perbaikan UX'],
+        bullets_en: ['User experience audit', 'Usability testing', 'UX improvement recommendations']
       },
       {
         id: 'p-prototyping-interaction',
         name: 'Prototyping Interaction',
         name_en: 'Prototyping Interaction',
-        subtitle: 'Bentuk realisasi dari prototype sebuah produk agar lebih interaktif.',
-        subtitle_en: 'Form of realization of a product prototype to be more interactive.',
+        subtitle: '',
+        subtitle_en: '',
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'STARTER',
-        bullets: ['Bentuk realisasi dari prototype sebuah produk agar lebih interaktif.'],
-        bullets_en: ['Form of realization of a product prototype to be more interactive.']
+        bullets: ['Prototipe interaktif produk', 'Simulasi alur penggunaan', 'Siap untuk uji pengguna'],
+        bullets_en: ['Interactive product prototype', 'User flow simulation', 'Ready for user testing']
       }
     ]
   },
@@ -735,13 +736,30 @@ function PricingSection({ section, language, onScrollToContact }: PricingSection
                   <span className={`text-[8px] uppercase font-bold tracking-wider block ${isBestValue ? 'text-white/60' : 'text-slate-400'}`}>
                     {language === 'id' ? 'MULAI DARI' : 'STARTING FROM'}
                   </span>
-                  <div className="flex items-baseline justify-center mt-0.5 gap-0.5">
-                    <span className={`text-2xl sm:text-3xl font-sans font-black tracking-tight ${isBestValue ? 'text-white' : 'text-[#0A2472]'}`}>
-                      {language === 'id' ? plan.price : plan.price_en}
-                    </span>
-                    <span className={`text-[10px] font-semibold ${isBestValue ? 'text-white/70' : 'text-slate-400'}`}>
-                      {language === 'id' ? '/ Paket' : '/ Package'}
-                    </span>
+                  <div className="flex items-baseline justify-center mt-0.5 gap-1 flex-wrap">
+                    {(() => {
+                      const rawPrice = language === 'id' ? plan.price : plan.price_en;
+                      const slashIdx = rawPrice.indexOf('/');
+                      if (slashIdx === -1) {
+                        return (
+                          <span className={`text-2xl sm:text-3xl font-sans font-black tracking-tight ${isBestValue ? 'text-white' : 'text-[#0A2472]'}`}>
+                            {rawPrice}
+                          </span>
+                        );
+                      }
+                      const amount = rawPrice.slice(0, slashIdx).trim();
+                      const unit = rawPrice.slice(slashIdx).trim(); // e.g. "/ Post"
+                      return (
+                        <>
+                          <span className={`text-2xl sm:text-3xl font-sans font-black tracking-tight ${isBestValue ? 'text-white' : 'text-[#0A2472]'}`}>
+                            {amount}
+                          </span>
+                          <span className={`text-[10px] font-semibold ${isBestValue ? 'text-white/70' : 'text-slate-400'}`}>
+                            {unit}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

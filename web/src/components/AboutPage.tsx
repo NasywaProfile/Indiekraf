@@ -156,7 +156,7 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
       clientsServed: {
         tag: settings['about_client_tag_id'] || "SASARAN & MITRA",
         title: settings['about_client_title_id'] || "Siapa Yang Kami Layani?",
-        subtitle: settings['about_client_subtitle_id'] || "Indiekraf hadir untuk berbagai skala bisnis and jenis institusi — dari startup lokal hingga korporasi nasional.",
+        subtitle: settings['about_client_subtitle_id'] || "Indiekraf hadir untuk berbagai skala bisnis dan jenis institusi — dari startup lokal hingga korporasi nasional.",
         items: dynamicClientsList.map(c => ({
           title: c.title_id || '',
           desc: c.desc_id || '',
@@ -172,7 +172,7 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
     },
     en: {
       aboutUs: "ABOUT US",
-      heroTitle: settings['about_page_title_en'] || "Departing from understanding,",
+      heroTitle: settings['about_page_title_en'] || "Built on deep understanding,",
       heroTitleHighlight: settings['about_page_title_en'] ? "" : "not just execution.",
       heroDesc: settings['about_page_desc_en'] || "Indiekraf is a creative & digital agency based in Malang since 2018 — helping Indonesian businesses, institutions, and brands grow sustainably in the digital era.",
       stats: {
@@ -188,7 +188,7 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
       },
       purpose: {
         tag: settings['about_purpose_tag_en'] || "PURPOSE & VALUES",
-        title: settings['about_purpose_title_en'] || "Where We are Headed",
+        title: settings['about_purpose_title_en'] || "Where We Are Headed",
         subtitle: settings['about_purpose_subtitle_en'] || "Strategic guidance in driving the creative industry ecosystem.",
         visi: {
           tag: settings['about_vision_tag_en'] || "OUR VISION",

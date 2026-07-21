@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Save, LayoutTemplate, Layers } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, LayoutTemplate, Layers, Check } from 'lucide-react';
 
 export interface PricingPlan {
   id?: number;
@@ -26,6 +26,8 @@ export interface PricingPlan {
   btn_text_id?: string;
   btn_text_en?: string;
   btn_link?: string;
+  price_suffix_id?: string;
+  price_suffix_en?: string;
 }
 
 const emptyPlan: PricingPlan = {
@@ -84,6 +86,7 @@ export default function PricingManager() {
 
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [pricingCategories, setPricingCategories] = useState<PricingCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'hero' | 'plans'>('hero');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -95,7 +98,11 @@ export default function PricingManager() {
       if (data['pricing_categories_data']) {
         try {
           const parsed = JSON.parse(data['pricing_categories_data']);
-          setPricingCategories(Array.isArray(parsed) ? parsed : []);
+          const cats = Array.isArray(parsed) ? parsed : [];
+          setPricingCategories(cats);
+          if (cats.length > 0 && !selectedCategory) {
+            setSelectedCategory(cats[0].categoryName);
+          }
         } catch {}
       } else {
         setPricingCategories([]);
@@ -153,14 +160,70 @@ export default function PricingManager() {
   const updateCategoryDetails = (catName: string, field: string, val: string) => {
     setPricingCategories(prev => {
       const idx = prev.findIndex(c => c.categoryName === catName);
-      if (idx === -1) return prev;
       const nw = [...prev];
-      (nw[idx] as any)[field] = val;
+      if (idx === -1) {
+        nw.push({
+          id: `cat-${Date.now()}`,
+          categoryName: catName,
+          categoryName_en: catName,
+          title: '',
+          title_en: '',
+          subtitle: '',
+          subtitle_en: '',
+          icon: 'Megaphone',
+          [field]: val
+        } as any);
+      } else {
+        (nw[idx] as any)[field] = val;
+      }
       return nw;
     });
   };
-  const addCategory = () => setPricingCategories(prev => [...prev, { id: `cat-${Date.now()}`, categoryName: '', categoryName_en: '', title: '', title_en: '', subtitle: '', subtitle_en: '', icon: 'Target' }]);
-  const removeCategory = (idx: number) => setPricingCategories(prev => prev.filter((_, i) => i !== idx));
+
+  const createAdvertisingCategory = () => {
+    setPricingCategories(prev => {
+      if (prev.some(c => c.categoryName === 'Advertising & Publishing')) return prev;
+      return [
+        ...prev,
+        {
+          id: `cat-${Date.now()}`,
+          categoryName: 'Advertising & Publishing',
+          categoryName_en: 'Advertising & Publishing',
+          title: 'Advertising & Publishing',
+          title_en: 'Advertising & Publishing',
+          subtitle: 'Layanan iklan dan publikasi',
+          subtitle_en: 'Advertising and publishing services',
+          icon: 'Megaphone'
+        }
+      ];
+    });
+  };
+
+  const addCategory = () => {
+    const newCat: PricingCategory = {
+      id: `cat-${Date.now()}`,
+      categoryName: '',
+      categoryName_en: '',
+      title: '',
+      title_en: '',
+      subtitle: '',
+      subtitle_en: '',
+      icon: 'Target'
+    };
+    setPricingCategories(prev => [...prev, newCat]);
+  };
+  
+  const removeCategory = (idx: number) => {
+    setPricingCategories(prev => {
+      const nw = prev.filter((_, i) => i !== idx);
+      if (selectedCategory === prev[idx].categoryName && nw.length > 0) {
+        setSelectedCategory(nw[0].categoryName);
+      } else if (nw.length === 0) {
+        setSelectedCategory('');
+      }
+      return nw;
+    });
+  };
 
   const openCreate = (cat: string = '') => { setEditPlan({...emptyPlan, category: cat}); setShowModal(true); };
   const openEdit = (p: PricingPlan) => {
@@ -363,138 +426,289 @@ export default function PricingManager() {
 
       {activeTab === 'plans' && (
         <>
-        <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 mb-6">
-          <h2 className="font-bold text-[#0A2472] flex items-center gap-2">
+        {/* Category Management Card */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 mb-6">
+          <h3 className="text-sm font-bold text-[#0A2472] uppercase tracking-wider mb-4 flex items-center gap-2">
             <Layers className="w-5 h-5 text-indigo-500" />
-            Kelola Paket Harga
-          </h2>
-          <div className="flex gap-2">
+            Pengaturan Kategori
+          </h3>
+          <div className="space-y-3">
+            {pricingCategories.map((cat, i) => (
+              <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                <div className="flex-1 w-full space-y-2 sm:space-y-0 sm:flex sm:gap-3 sm:items-center">
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Nama Kategori (ID)</p>
+                    <input 
+                      value={cat.categoryName} 
+                      onChange={e => {
+                        const oldName = cat.categoryName;
+                        const newName = e.target.value;
+                        setPricingCategories(prev => {
+                          const nw = [...prev];
+                          nw[i].categoryName = newName;
+                          return nw;
+                        });
+                        if (selectedCategory === oldName) {
+                          setSelectedCategory(newName);
+                        }
+                      }} 
+                      placeholder="Misal: Pelatihan"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" 
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Nama Kategori (EN)</p>
+                    <input 
+                      value={cat.categoryName_en} 
+                      onChange={e => setPricingCategories(prev => {
+                        const nw = [...prev];
+                        nw[i].categoryName_en = e.target.value;
+                        return nw;
+                      })} 
+                      placeholder="e.g. Training"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" 
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setSelectedCategory(cat.categoryName)}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                      selectedCategory === cat.categoryName
+                        ? 'bg-[#0A2472] text-white'
+                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                    }`}
+                  >
+                    Kelola
+                  </button>
+                  <button 
+                    onClick={() => removeCategory(i)}
+                    className="p-2.5 rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-400 border border-transparent hover:border-red-100 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button 
+              onClick={() => {
+                addCategory();
+              }}
+              className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 mt-2 bg-blue-50/50 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Tambah Kategori Baru
+            </button>
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
             <button
               onClick={handleSaveSettings}
               disabled={isSavingSettings}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-emerald-200 disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              {isSavingSettings ? 'Menyimpan...' : 'Simpan Header Kategori'}
-            </button>
-            <button
-              onClick={() => openCreate()}
-              className="px-4 py-2 bg-[#0A2472] hover:bg-[#0A2472]/90 text-white rounded-xl text-sm font-bold shadow-sm shadow-blue-900/20 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Tambah Paket Baru
+              {isSavingSettings ? 'Menyimpan...' : 'Simpan Kategori'}
             </button>
           </div>
         </div>
 
-      <div className="space-y-6">
-        {isLoading ? (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center text-slate-400 text-sm">Memuat data...</div>
-        ) : (
-          Object.entries(plansByCategory).map(([cat, categoryPlans]) => {
-            const catObj = pricingCategories.find(c => c.categoryName === cat);
-            return (
-            <div key={cat} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-6">
-              <div className="bg-slate-50 border-b border-slate-100 px-6 py-3 flex items-center justify-between">
-                <h3 className="text-xs font-bold text-[#0A2472] uppercase tracking-wider">{cat}</h3>
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-1 rounded-md border border-slate-200">{categoryPlans.length} Paket</span>
-                  <button onClick={() => openCreate(cat)} className="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
-                    <Plus className="w-3 h-3" /> Tambah Paket
-                  </button>
-                </div>
-              </div>
-              
-              {/* CATEGORY HEADER EDITOR */}
-              {catObj && (
-                <div className="p-6 bg-white border-b border-slate-100">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Judul Kategori (ID)</label>
-                      <input value={catObj.title} onChange={e => updateCategoryDetails(cat, 'title', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100" placeholder="Contoh: Pelatihan Digital Marketing" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Judul Kategori (EN)</label>
-                      <input value={catObj.title_en} onChange={e => updateCategoryDetails(cat, 'title_en', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100" placeholder="e.g. Digital Marketing Training" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Subjudul (ID)</label>
-                      <input value={catObj.subtitle} onChange={e => updateCategoryDetails(cat, 'subtitle', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100" placeholder="Workshop - Kelas - Bootcamp" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Subjudul (EN)</label>
-                      <input value={catObj.subtitle_en} onChange={e => updateCategoryDetails(cat, 'subtitle_en', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100" placeholder="Workshop - Classes - Bootcamp" />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Ikon (Lucide)</label>
-                    <select 
-                      value={catObj.icon || 'Target'} 
-                      onChange={e => updateCategoryDetails(cat, 'icon', e.target.value)} 
-                      className="w-full md:w-1/2 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 bg-white"
-                    >
-                      <option value="Target">Target</option>
-                      <option value="GraduationCap">GraduationCap (Edukasi/Pelatihan)</option>
-                      <option value="Paintbrush">Paintbrush (Desain/Branding)</option>
-                      <option value="Share2">Share2 (Sosial Media)</option>
-                      <option value="Video">Video (Produksi Konten)</option>
-                      <option value="Search">Search (SEO & SEM)</option>
-                      <option value="Globe">Globe (Website/Internet)</option>
-                      <option value="MessageSquare">MessageSquare (Konsultasi)</option>
-                      <option value="Briefcase">Briefcase (Bisnis/Corporate)</option>
-                      <option value="TrendingUp">TrendingUp (Marketing/Sales)</option>
-                      <option value="Layers">Layers (Studio/Project)</option>
-                      <option value="PenTool">PenTool (Desain/UI)</option>
-                      <option value="Smartphone">Smartphone (Aplikasi Mobile)</option>
-                      <option value="Code">Code (Development)</option>
-                      <option value="Camera">Camera (Fotografi)</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-white border-b border-slate-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paket</th>
-                      <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Harga</th>
-                      <th className="px-4 py-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {categoryPlans.map(plan => (
-                      <tr key={plan.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-[#0A2472]">{plan.name}</span>
-                            <span className="text-[10px] text-slate-400 mt-0.5">{plan.subtitle}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-xs font-bold text-[#0A2472]">{plan.price}</td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => openEdit(plan)} className="p-2 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors">
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(plan.id!)} className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Pricing Packages Section */}
+        {selectedCategory ? (
+          <>
+            <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 mb-6">
+              <h2 className="font-bold text-[#0A2472] flex items-center gap-2">
+                <Layers className="w-5 h-5 text-indigo-500" />
+                Kelola Paket Harga - {selectedCategory}
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openCreate(selectedCategory)}
+                  className="px-4 py-2 bg-[#0A2472] hover:bg-[#0A2472]/90 text-white rounded-xl text-sm font-bold shadow-sm shadow-blue-900/20 flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tambah Paket Baru
+                </button>
               </div>
             </div>
-            );
-          })
+
+            <div className="space-y-6">
+              {isLoading ? (
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center text-slate-400 text-sm">Memuat data...</div>
+              ) : (
+                (() => {
+                  const categoryPlans = plansByCategory[selectedCategory] || [];
+                  const catObj = pricingCategories.find(c => c.categoryName === selectedCategory);
+                  const categoryHeader = catObj || {
+                    id: `cat-${selectedCategory}`,
+                    categoryName: selectedCategory,
+                    categoryName_en: selectedCategory,
+                    title: selectedCategory,
+                    title_en: selectedCategory,
+                    subtitle: '',
+                    subtitle_en: '',
+                    icon: 'Target'
+                  };
+                  
+                  return (
+                    <div className="space-y-6">
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                        <h3 className="text-sm font-bold text-[#0A2472] uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <LayoutTemplate className="w-4 h-4 text-indigo-500" />
+                          Pengaturan Header Kategori
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Judul Kategori (ID)</label>
+                            <input
+                              value={categoryHeader.title}
+                              onChange={e => updateCategoryDetails(selectedCategory, 'title', e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100"
+                              placeholder="Contoh: Pelatihan"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Judul Kategori (EN)</label>
+                            <input
+                              value={categoryHeader.title_en}
+                              onChange={e => updateCategoryDetails(selectedCategory, 'title_en', e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100"
+                              placeholder="e.g. Training"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Subjudul (ID)</label>
+                            <input
+                              value={categoryHeader.subtitle}
+                              onChange={e => updateCategoryDetails(selectedCategory, 'subtitle', e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100"
+                              placeholder="Deskripsi kategori"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Subjudul (EN)</label>
+                            <input
+                              value={categoryHeader.subtitle_en}
+                              onChange={e => updateCategoryDetails(selectedCategory, 'subtitle_en', e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100"
+                              placeholder="Category description"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Ikon (Lucide)</label>
+                          <select
+                            value={categoryHeader.icon || 'Target'}
+                            onChange={e => updateCategoryDetails(selectedCategory, 'icon', e.target.value)}
+                            className="w-full md:w-1/2 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 bg-white"
+                          >
+                            <option value="Target">Target</option>
+                            <option value="Megaphone">Megaphone (Advertising)</option>
+                            <option value="Share2">Share2 (Sosial Media)</option>
+                            <option value="Video">Video (Produksi Konten)</option>
+                            <option value="Search">Search (SEO & SEM)</option>
+                            <option value="Globe">Globe (Website/Internet)</option>
+                            <option value="MessageSquare">MessageSquare (Konsultasi)</option>
+                            <option value="TrendingUp">TrendingUp (Marketing/Sales)</option>
+                            <option value="Zap">Zap (Aktivasi)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-sm font-bold text-[#0A2472] uppercase tracking-wider mb-4">Daftar Paket ({categoryPlans.length} paket)</h3>
+                        {categoryPlans.length === 0 ? (
+                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
+                            <p className="text-slate-400 text-sm mb-4">Belum ada paket untuk kategori ini</p>
+                            <button
+                              onClick={() => openCreate(selectedCategory)}
+                              className="px-4 py-2 bg-[#0A2472] hover:bg-[#0A2472]/90 text-white rounded-xl text-sm font-bold flex items-center gap-2 mx-auto"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Buat Paket Pertama
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {categoryPlans.map(plan => (
+                              <div key={plan.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all overflow-hidden flex flex-col">
+                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-100 px-4 py-4">
+                                  <div className="flex items-start justify-between gap-2 mb-2">
+                                    <div className="flex-1">
+                                      <h4 className="text-sm font-bold text-[#0A2472] line-clamp-2">{plan.name}</h4>
+                                      <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{plan.subtitle}</p>
+                                    </div>
+                                    {plan.badge && (
+                                      <span className="text-[10px] font-bold text-white bg-[#0A2472] px-2 py-1 rounded-md whitespace-nowrap flex-shrink-0">
+                                        {plan.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="px-4 py-4 flex-1">
+                                  <div className="mb-3">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Harga</p>
+                                    <p className="text-lg font-bold text-[#0A2472]">{plan.price}</p>
+                                  </div>
+                                  {(plan.bullets && plan.bullets.length > 0) && (
+                                    <div className="mb-3">
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Fitur</p>
+                                      <ul className="space-y-1.5">
+                                        {plan.bullets.slice(0, 3).map((bullet, i) => (
+                                          <li key={i} className="flex items-start gap-2">
+                                            <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                            <span className="text-[11px] text-slate-600 line-clamp-2">{bullet}</span>
+                                          </li>
+                                        ))}
+                                        {plan.bullets.length > 3 && (
+                                          <li className="text-[10px] text-slate-400 italic">+{plan.bullets.length - 3} fitur lainnya</li>
+                                        )}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="border-t border-slate-100 px-4 py-3 bg-slate-50/50 flex items-center justify-between gap-2">
+                                  <button
+                                    onClick={() => openEdit(plan)}
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors text-[11px] font-bold"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(plan.id!)}
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors text-[11px] font-bold"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Hapus
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
+            <p className="text-slate-400 text-sm mb-4">Belum ada kategori. Buat kategori baru untuk mulai mengelola paket harga.</p>
+            <button
+              onClick={addCategory}
+              className="px-4 py-2 bg-[#0A2472] hover:bg-[#0A2472]/90 text-white rounded-xl text-sm font-bold flex items-center gap-2 mx-auto"
+            >
+              <Plus className="w-4 h-4" />
+              Buat Kategori Baru
+            </button>
+          </div>
         )}
-      </div>
-      </>
+        </>
       )}
 
       {/* Modal */}
@@ -532,21 +746,6 @@ export default function PricingManager() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Badge (ID)</label>
-                  <input value={editPlan.badge || ''} onChange={e => setEditPlan(p => ({ ...p, badge: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    placeholder="Contoh: POPULER" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Badge (EN)</label>
-                  <input value={editPlan.badge_en || ''} onChange={e => setEditPlan(p => ({ ...p, badge_en: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    placeholder="e.g.: POPULAR" />
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Teks Tombol (ID)</label>

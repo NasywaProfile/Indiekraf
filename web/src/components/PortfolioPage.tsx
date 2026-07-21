@@ -21,6 +21,7 @@ import { useTheme } from '../context/ThemeContext';
 interface PortfolioPageProps {
   onBackToHome: () => void;
   onScrollToContact: () => void;
+  onPageProgress: () => void;
 }
 
 interface Project {
@@ -36,9 +37,12 @@ interface Project {
   description_en?: string;
   type?: string;
   image_url?: string;
+  btn_text_id?: string;
+  btn_text_en?: string;
+  link_url?: string;
 }
 
-export default function PortfolioPage({ onBackToHome, onScrollToContact }: PortfolioPageProps) {
+export default function PortfolioPage({ onBackToHome, onScrollToContact, onPageProgress }: PortfolioPageProps) {
   const { language, settings } = useLanguage();
   const { style } = useTheme();
 
@@ -57,7 +61,7 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact }: Portf
     { id: 'branding', label_id: 'Branding & Identitas', label_en: 'Branding & Identity' },
     { id: 'marketing', label_id: 'Digital Marketing', label_en: 'Digital Marketing' },
     { id: 'event', label_id: 'Event & Academy', label_en: 'Event & Academy' },
-    { id: 'insight', label_id: 'Riset & Insight', label_en: 'Riset & Insight' },
+    { id: 'insight', label_id: 'Riset & Wawasan', label_en: 'Research & Insights' },
   ];
 
   let dynamicCategories = defaultFilters;
@@ -92,7 +96,10 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact }: Portf
             category_en: item.category_en || item.category,
             description: language === 'id' ? item.description : (item.description_en || item.description),
             type: item.category_id || 'website',
-            image_url: item.image_url
+            image_url: item.image_url,
+            btn_text_id: item.btn_text_id || '',
+            btn_text_en: item.btn_text_en || '',
+            link_url: item.link_url || '',
           }));
           setProjects(mappedProjects);
         }
@@ -307,10 +314,25 @@ export default function PortfolioPage({ onBackToHome, onScrollToContact }: Portf
                       </p>
                     </div>
                     
-                    <button className="mt-8 w-full py-3 bg-[#f1f5ff] text-[#4338ca] text-xs font-extrabold rounded-[10px] hover:bg-[#2563eb] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group/btn active:scale-95">
-                      <span>{ct.viewDetail}</span>
-                      <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-                    </button>
+                    {project.link_url ? (
+                      <a
+                        href={project.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-8 w-full py-3 bg-[#f1f5ff] text-[#4338ca] text-xs font-extrabold rounded-[10px] hover:bg-[#2563eb] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group/btn active:scale-95"
+                      >
+                        <span>{language === 'id' ? (project.btn_text_id || ct.viewDetail) : (project.btn_text_en || ct.viewDetail)}</span>
+                        <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                      </a>
+                    ) : (
+                      <button
+                        onClick={onPageProgress}
+                        className="mt-8 w-full py-3 bg-[#f1f5ff] text-[#4338ca] text-xs font-extrabold rounded-[10px] hover:bg-[#2563eb] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group/btn active:scale-95"
+                      >
+                        <span>{language === 'id' ? (project.btn_text_id || ct.viewDetail) : (project.btn_text_en || ct.viewDetail)}</span>
+                        <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}

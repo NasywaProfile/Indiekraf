@@ -38,12 +38,12 @@ router.get('/:id', async (req, res) => {
 
 // POST create portfolio item
 router.post('/', async (req, res) => {
-  const { year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active } = req.body;
+  const { year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active, btn_text_id, btn_text_en, link_url } = req.body;
   try {
     const [result] = await pool.query(
-      `INSERT INTO portfolio_items (year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order || 0, is_active ?? 1]
+      `INSERT INTO portfolio_items (year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active, btn_text_id, btn_text_en, link_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order || 0, is_active ?? 1, btn_text_id || '', btn_text_en || '', link_url || '']
     ) as any;
     res.json({ success: true, id: result.insertId });
   } catch (err) {
@@ -53,11 +53,11 @@ router.post('/', async (req, res) => {
 
 // PUT update portfolio item
 router.put('/:id', async (req, res) => {
-  const { year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active } = req.body;
+  const { year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active, btn_text_id, btn_text_en, link_url } = req.body;
   try {
     await pool.query(
-      `UPDATE portfolio_items SET year=?, client=?, client_en=?, title=?, title_en=?, category=?, category_en=?, description=?, description_en=?, image_url=?, sort_order=?, is_active=? WHERE id=?`,
-      [year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active, req.params.id]
+      `UPDATE portfolio_items SET year=?, client=?, client_en=?, title=?, title_en=?, category=?, category_en=?, description=?, description_en=?, image_url=?, sort_order=?, is_active=?, btn_text_id=?, btn_text_en=?, link_url=? WHERE id=?`,
+      [year, client, client_en, title, title_en, category, category_en, description, description_en, image_url, sort_order, is_active, btn_text_id || '', btn_text_en || '', link_url || '', req.params.id]
     );
     res.json({ success: true });
   } catch (err) {

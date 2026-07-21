@@ -15,6 +15,9 @@ interface PortfolioItem {
   image_url: string;
   sort_order: number;
   is_active: number;
+  btn_text_id: string;
+  btn_text_en: string;
+  link_url: string;
 }
 
 const emptyItem: PortfolioItem = {
@@ -30,6 +33,9 @@ const emptyItem: PortfolioItem = {
   image_url: '',
   sort_order: 0,
   is_active: 1,
+  btn_text_id: '',
+  btn_text_en: '',
+  link_url: '',
 };
 
 // The types will now be dynamically fetched from settings or fallback to these
@@ -560,6 +566,41 @@ export default function PortfolioManager() {
                     <option value={1}>Aktif</option>
                     <option value={0}>Nonaktif</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Button Lihat Detail */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tombol "Lihat Detail"</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Teks Tombol (Indonesia)</label>
+                    <input
+                      value={editItem.btn_text_id}
+                      onChange={e => setEditItem(p => ({ ...p, btn_text_id: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      placeholder="cth: Lihat Detail"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Teks Tombol (English)</label>
+                    <input
+                      value={editItem.btn_text_en}
+                      onChange={e => setEditItem(p => ({ ...p, btn_text_en: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      placeholder="e.g. View Details"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">URL Link (opsional)</label>
+                  <input
+                    value={editItem.link_url}
+                    onChange={e => setEditItem(p => ({ ...p, link_url: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    placeholder="https://contoh.com/proyek"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Jika diisi, tombol akan membuka link ini di tab baru.</p>
                 </div>
               </div>
             </div>

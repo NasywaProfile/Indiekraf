@@ -26,8 +26,8 @@ const pricingData = [
         price: 'Rp 2.400.000',
         price_en: 'Rp 2.4M',
         badge: 'POPULER',
-        bullets: ['Hands-on praktek langsung', 'Template iklan premium', 'Akses komunitas diskusi'],
-        bullets_en: ['Direct hands-on practice', 'Premium ad templates', 'Discussion community access']
+        bullets: ['Praktik langsung', 'Template iklan premium', 'Akses komunitas diskusi'],
+        bullets_en: ['Hands-on practical training', 'Premium ad templates', 'Discussion community access']
       },
       {
         id: 'p-adv',
@@ -38,8 +38,8 @@ const pricingData = [
         price: 'Rp 5.000.000',
         price_en: 'Rp 5M',
         badge: 'PREMIUM',
-        bullets: ['Projek riil industri', 'Mentoring 1-on-1 eksklusif', 'Sertifikat keahlian profesional'],
-        bullets_en: ['Real industry project', 'Exclusive 1-on-1 mentoring', 'Professional certification']
+        bullets: ['Proyek nyata industri', 'Mentoring 1-on-1 eksklusif', 'Sertifikat keahlian profesional'],
+        bullets_en: ['Real-world industry project', 'Exclusive 1-on-1 mentoring', 'Professional skill certificate']
       },
       {
         id: 'p-boot',
