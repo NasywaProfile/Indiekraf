@@ -430,7 +430,7 @@ export default function NavbarManager() {
         </div>
         <button
           type="button"
-          onClick={handleSave}
+          onClick={handleSaveAll}
           disabled={isSaving}
           className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
         >
