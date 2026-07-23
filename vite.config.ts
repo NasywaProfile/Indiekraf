@@ -5,7 +5,23 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'cms-dev-rewrite',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && (req.url === '/cms' || req.url === '/cms/' || req.url === '/admin' || req.url === '/admin/' || req.url.startsWith('/cms/') || req.url.startsWith('/admin/'))) {
+              if (!req.url.includes('.')) {
+                req.url = '/cms/index.html';
+              }
+            }
+            next();
+          });
+        },
+      },
+    ],
     define: {
       'process.env.GOOGLE_MAPS_PLATFORM_KEY': JSON.stringify(process.env.GOOGLE_MAPS_PLATFORM_KEY || '')
     },
