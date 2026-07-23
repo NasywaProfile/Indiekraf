@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Phone, CheckCircle2, AlertCircle, Upload } from 'lucide-react';
+import { Save, Phone, CheckCircle2, AlertCircle, Upload, LayoutTemplate, MessageSquare, MapPin } from 'lucide-react';
 
 export default function ContactManager() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<'hero' | 'channels' | 'form'>('hero');
   
   const [isUploadingMap, setIsUploadingMap] = useState(false);
   const mapFileInputRef = useRef<HTMLInputElement>(null);
@@ -79,8 +80,8 @@ export default function ContactManager() {
   }
 
   return (
-    <div className="max-w-4xl space-y-8">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-5">
+    <div className="max-w-6xl space-y-8 pb-12">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
         <div>
           <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Hubungi Kami (Contact Us)</h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -88,9 +89,10 @@ export default function ContactManager() {
           </p>
         </div>
         <button
+          type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
         >
           <Save className="w-4 h-4" />
           {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -106,12 +108,53 @@ export default function ContactManager() {
         </div>
       )}
 
+      {/* Sub-Navigation Tabs matching BlogManager & PortfolioManager */}
+      <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => { setActiveTab('hero'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'hero'
+              ? 'bg-[#0A2472] text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          <LayoutTemplate className="w-4 h-4 text-indigo-400" />
+          1. Header Hero
+        </button>
+        <button
+          type="button"
+          onClick={() => { setActiveTab('channels'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'channels'
+              ? 'bg-[#0A2472] text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          <Phone className="w-4 h-4 text-indigo-400" />
+          2. Saluran Komunikasi
+        </button>
+        <button
+          type="button"
+          onClick={() => { setActiveTab('form'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'form'
+              ? 'bg-[#0A2472] text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4 text-indigo-400" />
+          3. Formulir & Sosmed
+        </button>
+      </div>
+
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 mb-6">
-          <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
-            <CheckCircle2 className="w-5 h-5 text-blue-600" />
-            <h2>Konten Hero (Bagian Atas)</h2>
-          </div>
+        {activeTab === 'hero' && (
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
+              <LayoutTemplate className="w-5 h-5 text-indigo-600" />
+              <h2>Konten Hero (Bagian Atas)</h2>
+            </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
@@ -171,11 +214,24 @@ export default function ContactManager() {
               />
             </div>
           </div>
-        </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 mb-6">
+          <div className="flex justify-end pt-4 border-t border-slate-100">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+          </div>
+        </div>
+        )}
+
+        {activeTab === 'channels' && (
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 animate-in fade-in duration-200">
           <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
-            <Phone className="w-5 h-5 text-emerald-600" />
+            <Phone className="w-5 h-5 text-indigo-600" />
             <h2>Representative Hub & Channels</h2>
           </div>
 
@@ -319,11 +375,24 @@ export default function ContactManager() {
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 mb-6">
+          <div className="flex justify-end pt-4 border-t border-slate-100">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+          </div>
+        </div>
+        )}
+
+        {activeTab === 'form' && (
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6 animate-in fade-in duration-200">
           <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
-            <CheckCircle2 className="w-5 h-5 text-blue-600" />
+            <MessageSquare className="w-5 h-5 text-indigo-600" />
             <h2>Konten Form Konsultasi & Sosial Media</h2>
           </div>
 
@@ -501,7 +570,19 @@ export default function ContactManager() {
               <input type="text" value={settings['contact_social_sub_en'] ?? 'Follow the latest developments of the creative industry ecosystem every day.'} onChange={e => handleChange('contact_social_sub_en', e.target.value)} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-100" />
             </div>
           </div>
+
+          <div className="flex justify-end pt-4 border-t border-slate-100">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+          </div>
         </div>
+        )}
       </form>
     </div>
   );

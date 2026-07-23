@@ -131,7 +131,7 @@ export default function CtaFooterManager() {
   }
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-6xl space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
         <div>
           <h1 className="text-2xl font-black text-[#0A2472]">Kelola CTA & Footer Website</h1>
@@ -140,9 +140,10 @@ export default function CtaFooterManager() {
           </p>
         </div>
         <button
+          type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap"
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
         >
           <Save className="w-4 h-4" />
           {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -158,19 +159,43 @@ export default function CtaFooterManager() {
         </div>
       )}
 
-      {/* Tabs Navigation */}
-      <div className="flex space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner overflow-x-auto">
+      {/* Sub-Navigation Tabs matching BlogManager & PortfolioManager */}
+      <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4 overflow-x-auto">
         <button
-          onClick={(e) => {e.preventDefault(); setActiveTab('cta');}}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-1 justify-center ${activeTab === 'cta' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+          type="button"
+          onClick={() => { setActiveTab('cta'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'cta'
+              ? 'bg-[#0A2472] text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
         >
-          <Target className="w-4 h-4" /> CTA (Ajakan Bekerja Sama)
+          <Target className="w-4 h-4 text-indigo-400" />
+          1. Call to Action (CTA)
         </button>
         <button
-          onClick={(e) => {e.preventDefault(); setActiveTab('footer');}}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-1 justify-center ${activeTab === 'footer' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+          type="button"
+          onClick={() => { setActiveTab('footer'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'footer'
+              ? 'bg-[#0A2472] text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
         >
-          <Layout className="w-4 h-4" /> Komponen Footer
+          <Layout className="w-4 h-4 text-indigo-400" />
+          2. Komponen Footer
+        </button>
+        <button
+          type="button"
+          onClick={() => { setActiveTab('seo'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'seo'
+              ? 'bg-[#0A2472] text-white shadow-md'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          <Globe className="w-4 h-4 text-indigo-400" />
+          3. Pengaturan & SEO
         </button>
       </div>
 
