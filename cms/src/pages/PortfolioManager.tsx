@@ -141,35 +141,131 @@ export default function PortfolioManager() {
   const addCategory = () => setPortfolioCategories([...portfolioCategories, { id: '', label_id: '', label_en: '' }]);
   const removeCategory = (idx: number) => setPortfolioCategories(portfolioCategories.filter((_, i) => i !== idx));
 
+  const compressImageIfNeeded = async (file: File): Promise<File> => {
+    if (!file.type.startsWith('image/') || file.size <= 1024 * 1024) {
+      return file;
+    }
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1920;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+                  resolve(newFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              0.85
+            );
+          } else {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const safeUploadImage = async (rawFile: File): Promise<string | null> => {
+    const compressedFile = await compressImageIfNeeded(rawFile);
+    const formData = new FormData();
+    formData.append('image', compressedFile);
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) {
+      throw new Error(data.error || data.message || `Upload gagal (Status ${res.status})`);
+    }
+    return data.url;
+  };
+
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, side: 'left' | 'right') => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingHeroImg(side);
-    const formData = new FormData();
-    formData.append('image', file);
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.url) {
-        handleChangeSetting(`portfolio_hero_image_${side}`, data.url);
+      const url = await safeUploadImage(file);
+      if (url) {
+        handleChangeSetting(`portfolio_hero_image_${side}`, url);
       }
-    } catch { }
-    setUploadingHeroImg(null);
+    } catch (err: any) {
+      alert(err.message || 'Gagal mengunggah gambar hero. Silakan coba lagi.');
+    } finally {
+      setUploadingHeroImg(null);
+    }
   };
 
   const openCreate = () => { setEditItem(emptyItem); setShowModal(true); };
   const openEdit = (item: PortfolioItem) => { setEditItem({ ...item }); setShowModal(true); };
 
   const handleSave = async () => {
+    if (!editItem.title.trim()) {
+      alert('Judul proyek wajib diisi!');
+      return;
+    }
     setIsSaving(true);
     try {
       const method = editItem.id ? 'PUT' : 'POST';
       const url = editItem.id ? `/api/portfolio/${editItem.id}` : '/api/portfolio';
-      await fetch(url, { method, headers, body: JSON.stringify(editItem) });
+      const itemToSave = {
+        ...editItem,
+        client: editItem.client || editItem.title || '',
+        client_en: editItem.client_en || editItem.client || editItem.title || '',
+        title: editItem.title || '',
+        title_en: editItem.title_en || editItem.title || '',
+        category: editItem.category || '',
+        category_en: editItem.category_en || editItem.category || '',
+        description: editItem.description || '',
+        description_en: editItem.description_en || editItem.description || '',
+        type: editItem.type || 'website',
+        image_url: editItem.image_url || '',
+        btn_text_id: editItem.btn_text_id || '',
+        btn_text_en: editItem.btn_text_en || '',
+        link_url: editItem.link_url || '',
+        sort_order: editItem.sort_order || 0,
+        is_active: editItem.is_active ?? 1
+      };
+      const res = await fetch(url, { method, headers, body: JSON.stringify(itemToSave) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || data.error || `Gagal menyimpan portofolio (Status ${res.status})`);
+      }
       setShowModal(false);
       fetchItems();
-    } catch { }
-    setIsSaving(false);
+      alert('Portofolio Berhasil Disimpan!');
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyimpan portofolio.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -182,14 +278,16 @@ export default function PortfolioManager() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
-    const formData = new FormData();
-    formData.append('image', file);
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.url) setEditItem(p => ({ ...p, image_url: data.url }));
-    } catch { }
-    setUploadingImage(false);
+      const url = await safeUploadImage(file);
+      if (url) {
+        setEditItem(p => ({ ...p, image_url: url }));
+      }
+    } catch (err: any) {
+      alert(err.message || 'Gagal mengunggah gambar proyek. Silakan coba lagi.');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   return (

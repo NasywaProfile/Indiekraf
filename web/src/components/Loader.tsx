@@ -90,7 +90,7 @@ export default function Loader({ onComplete, onStartReveal }: LoaderProps) {
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 id="loader-brand-wrapper"
               >
-                <div className="flex flex-row items-center justify-center gap-3 sm:gap-4">
+                <div className="flex flex-row items-center justify-center">
                   {/* Logo with clean entry transition */}
                   <motion.div 
                     className="flex items-center justify-center shrink-0"
@@ -103,45 +103,8 @@ export default function Loader({ onComplete, onStartReveal }: LoaderProps) {
                       delay: 0.05 
                     }}
                   >
-                    <Logo size={42} className="w-10 h-10 sm:w-11 sm:h-11" />
+                    <Logo size={40} className="w-10 h-10 object-contain" />
                   </motion.div>
-
-                  {/* Indiekraf Text (Staggered character by character) */}
-                  <motion.h1 
-                    className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight flex items-center select-none"
-                    id="loader-brand-title"
-                  >
-                    {letters.map((char, index) => {
-                      // Color logic: primary text is #0A2472, last dot is #5f75cf, or half indigo if matches 'indiekraf.'
-                      let color = "#0A2472"; 
-                      if (logoText.toLowerCase() === 'indiekraf.') {
-                        if (index >= 5 && index < 9) {
-                          color = "#364eb7";
-                        } else if (index === 9) {
-                          color = "#5f75cf";
-                        }
-                      } else if (char === '.' || index === letters.length - 1) {
-                        color = "#364eb7";
-                      }
-
-                      return (
-                        <motion.span
-                          key={index}
-                          initial={{ opacity: 0, x: 4, filter: 'blur(2px)' }}
-                          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                          transition={{
-                            duration: 0.35,
-                            delay: 0.15 + index * 0.03,
-                            ease: [0.16, 1, 0.3, 1]
-                          }}
-                          style={{ color }}
-                          className="inline-block"
-                        >
-                          {char}
-                        </motion.span>
-                      );
-                    })}
-                  </motion.h1>
                 </div>
 
                 {/* Optional Loader Subtext / Tagline */}

@@ -419,48 +419,113 @@ export default function AboutManager() {
     setIsLeaderModalOpen(true);
   };
 
+  const compressImageIfNeeded = async (file: File): Promise<File> => {
+    if (!file.type.startsWith('image/') || file.size <= 1024 * 1024) {
+      return file;
+    }
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1920;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+                  resolve(newFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              0.85
+            );
+          } else {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const safeUploadImage = async (file: File) => {
+    const fileToUpload = await compressImageIfNeeded(file);
+    const formData = new FormData();
+    formData.append('image', fileToUpload);
+    const token = localStorage.getItem('cms_token');
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(res.status === 413 ? 'Ukuran file gambar terlalu besar (Maksimal 5MB)' : `Gagal upload gambar (HTTP ${res.status})`);
+    }
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || `Gagal upload gambar (HTTP ${res.status})`);
+    }
+    return data.url;
+  };
+
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingHeroImage(true);
-    const formData = new FormData();
-    formData.append('image', file);
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('cms_token')}` },
-        body: formData
-      });
-      const data = await res.json();
-      if (data.url) {
-        handleChange('about_hero_image', data.url);
-      }
-    } catch (err) {
-      console.error('Upload failed', err);
+      const url = await safeUploadImage(file);
+      handleChange('about_hero_image', url);
+      alert('Gambar Latar Hero Tentang Kami berhasil diunggah!');
+    } catch (err: any) {
+      alert(err.message || 'Gagal mengunggah gambar hero');
+    } finally {
+      setUploadingHeroImage(false);
+      if (e.target) e.target.value = '';
     }
-    setUploadingHeroImage(false);
   };
 
   const handleLeaderImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingLeaderImage(true);
-    const formData = new FormData();
-    formData.append('image', file);
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('cms_token')}` },
-        body: formData
-      });
-      const data = await res.json();
-      if (data.url) {
-        setFormLeader(p => ({ ...p, image: data.url }));
-      }
-    } catch (err) {
-      console.error('Upload failed', err);
+      const url = await safeUploadImage(file);
+      setFormLeader(p => ({ ...p, image: url }));
+    } catch (err: any) {
+      alert(err.message || 'Gagal mengunggah foto');
+    } finally {
+      setUploadingLeaderImage(false);
+      if (e.target) e.target.value = '';
     }
-    setUploadingLeaderImage(false);
   };
 
   const handleSaveLeaderModal = (e: React.FormEvent) => {
@@ -1397,8 +1462,9 @@ export default function AboutManager() {
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Footer Kanan</label>
                       <input
                         type="text"
-                        value={settings['about_legal_ledger_footer_right_id'] ?? 'VERIFICATION HASH: IDX-2018-09'}
+                        value={settings['about_legal_ledger_footer_right_id'] ?? ''}
                         onChange={e => handleChange('about_legal_ledger_footer_right_id', e.target.value)}
+                        placeholder="Opsional (kosongkan jika tidak digunakan)"
                         className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
                       />
                     </div>
@@ -1449,8 +1515,9 @@ export default function AboutManager() {
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Footer Right</label>
                       <input
                         type="text"
-                        value={settings['about_legal_ledger_footer_right_en'] ?? 'VERIFICATION HASH: IDX-2018-09'}
+                        value={settings['about_legal_ledger_footer_right_en'] ?? ''}
                         onChange={e => handleChange('about_legal_ledger_footer_right_en', e.target.value)}
+                        placeholder="Optional (leave empty if unused)"
                         className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
                       />
                     </div>

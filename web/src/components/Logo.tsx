@@ -6,7 +6,7 @@ interface LogoProps {
   size?: number;
 }
 
-export default function Logo({ className = '', size = 48 }: LogoProps) {
+export default function Logo({ className = '', size = 28 }: LogoProps) {
   const [hasError, setHasError] = useState(false);
   const langContext = useLanguageOptional();
   const settings = langContext?.settings || {};
@@ -21,10 +21,9 @@ export default function Logo({ className = '', size = 48 }: LogoProps) {
       <img
         src={customLogoUrl}
         alt="Indiekraf Logo"
-        width={size}
-        height={size}
+        style={{ height: `${size}px`, width: 'auto' }}
         onError={() => setHasError(true)}
-        className={`${className} object-contain`}
+        className={`${className} object-contain max-h-7 h-7`}
         referrerPolicy="no-referrer"
         id="logo-image"
       />

@@ -14,13 +14,21 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('cms_token');
-    const headers = { Authorization: `Bearer ${token}` };
+    const headers = { 
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}` 
+    };
+
+    const safeFetch = (url: string) => 
+      fetch(url, { headers })
+        .then(r => (r.ok && (r.headers.get('content-type') || '').includes('application/json')) ? r.json() : [])
+        .catch(() => []);
 
     Promise.all([
-      fetch('/api/blog/all', { headers }).then(r => r.json()),
-      fetch('/api/portfolio/all', { headers }).then(r => r.json()),
-      fetch('/api/services/all', { headers }).then(r => r.json()),
-      fetch('/api/pricing/all', { headers }).then(r => r.json()),
+      safeFetch('/api/blog/all'),
+      safeFetch('/api/portfolio/all'),
+      safeFetch('/api/services/all'),
+      safeFetch('/api/pricing/all'),
     ])
       .then(([blog, portfolio, services, pricing]) => {
         setStats({

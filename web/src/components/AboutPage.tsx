@@ -321,7 +321,7 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
   const legalLedgerName = settings?.[`about_legal_ledger_name_${language}`] ?? "PT INDIEKRAF INDONESIA DIGITAL KREATIF";
   const legalLedgerBadge = settings?.[`about_legal_ledger_badge_${language}`] ?? "SECURE RECORD";
   const legalLedgerFooterLeft = settings?.[`about_legal_ledger_footer_left_${language}`] ?? "ISSUED BY REPUBLIC OF INDONESIA";
-  const legalLedgerFooterRight = settings?.[`about_legal_ledger_footer_right_${language}`] ?? "VERIFICATION HASH: IDX-2018-09";
+  const legalLedgerFooterRight = settings?.[`about_legal_ledger_footer_right_${language}`] ?? "";
 
   const legalTagIcon = settings?.['about_legal_tag_icon'] ?? 'shield-check';
   const legalAlertIcon = settings?.['about_legal_alert_icon'] ?? 'check-circle';
@@ -438,6 +438,9 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
             alt="Indiekraf Collaboration Background"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover select-none pointer-events-none opacity-100 object-center"
+            onError={e => {
+              (e.target as HTMLImageElement).src = '/gambar.jpg';
+            }}
           />
           {/* Deep cinematic overlays for absolute readability */}
           <div className="absolute inset-0 bg-[#0A2472]/50" />
@@ -560,49 +563,47 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
                   variants={subtleFadeUp}
                   whileHover={{ y: -4, scale: 1.01 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  className="bg-gradient-to-br from-white to-slate-50/60 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-[0_4px_24px_rgba(10,36,114,0.03)] border border-slate-200/80 hover:border-[#0A2472]/40 hover:shadow-[0_12px_36px_rgba(10,36,114,0.06)] transition-all duration-300 w-full h-full relative overflow-hidden group"
+                  className="bg-gradient-to-br from-white to-slate-50/60 rounded-2xl p-6 flex flex-col items-center justify-between text-center space-y-4 shadow-[0_4px_24px_rgba(10,36,114,0.03)] border border-slate-200/80 hover:border-[#0A2472]/40 hover:shadow-[0_12px_36px_rgba(10,36,114,0.06)] transition-all duration-300 w-full h-full relative overflow-hidden group"
                 >
                   {/* Subtle top decorative border accent */}
                   <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#0A2472] to-[#38BDF8] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 sm:gap-5">
-                      {/* Avatar / Photo Container - Sleek Circular Border Gradient */}
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full p-[2px] bg-gradient-to-tr from-[#0A2472]/20 to-[#38BDF8]/20 group-hover:from-[#0A2472] group-hover:to-[#38BDF8] transition-all duration-500 shrink-0 shadow-sm">
-                        <div className="w-full h-full rounded-full overflow-hidden bg-slate-50 flex items-center justify-center text-[#0A2472] font-sans font-extrabold text-base sm:text-lg relative">
-                          <span className="bg-gradient-to-tr from-[#0A2472] to-blue-700 bg-clip-text text-transparent">{leader.initials || (leader.name ? leader.name.substring(0, 2).toUpperCase() : 'LD')}</span>
-                          {leader.image && (
-                            <img 
-                              src={leader.image} 
-                              alt={leader.name} 
-                              className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          )}
-                        </div>
+                  <div className="flex flex-col items-center justify-center text-center space-y-3.5 w-full my-auto">
+                    {/* Avatar / Photo Container - Enriched & Centered */}
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-[3px] bg-gradient-to-tr from-[#0A2472]/20 via-blue-400/30 to-[#38BDF8]/30 group-hover:from-[#0A2472] group-hover:to-[#38BDF8] transition-all duration-500 shrink-0 shadow-md hover:shadow-lg">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-slate-50 flex items-center justify-center text-[#0A2472] font-sans font-extrabold text-xl sm:text-2xl relative">
+                        <span className="bg-gradient-to-tr from-[#0A2472] to-blue-700 bg-clip-text text-transparent">{leader.initials || (leader.name ? leader.name.substring(0, 2).toUpperCase() : 'LD')}</span>
+                        {leader.image && (
+                          <img 
+                            src={leader.image} 
+                            alt={leader.name} 
+                            className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        )}
                       </div>
+                    </div>
 
-                      {/* Header info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-extrabold text-[#0A2472] bg-[#0A2472]/5 px-2.5 py-0.5 rounded border border-[#0A2472]/10 uppercase tracking-widest font-mono">
-                            {language === 'id' ? (leader.role_id || leader.role_en || 'Leader') : (leader.role_en || leader.role_id || 'Leader')}
-                          </span>
-                        </div>
-                        <h3 className="font-sans font-black text-[#0A2472] text-base sm:text-[17px] leading-snug mt-1.5 break-words group-hover:text-blue-900 transition-colors">
-                          {leader.name}
-                        </h3>
-                        <p className="text-[10px] sm:text-xs text-blue-500/80 font-bold font-mono tracking-widest uppercase mt-0.5">
+                    {/* Header info - Centered */}
+                    <div className="flex flex-col items-center text-center space-y-1.5 w-full">
+                      <span className="text-[9px] font-extrabold text-[#0A2472] bg-[#0A2472]/5 px-3 py-0.5 rounded-full border border-[#0A2472]/10 uppercase tracking-widest font-mono inline-block">
+                        {language === 'id' ? (leader.role_id || leader.role_en || 'Leader') : (leader.role_en || leader.role_id || 'Leader')}
+                      </span>
+                      <h3 className="font-sans font-black text-[#0A2472] text-lg sm:text-xl leading-snug break-words group-hover:text-blue-900 transition-colors">
+                        {leader.name}
+                      </h3>
+                      {(leader.subtitle_id || leader.subtitle_en) && (
+                        <p className="text-[10px] sm:text-xs text-blue-500/80 font-bold font-mono tracking-widest uppercase">
                           {language === 'id' ? (leader.subtitle_id || leader.subtitle_en || '') : (leader.subtitle_en || leader.subtitle_id || '')}
                         </p>
-                      </div>
+                      )}
                     </div>
                   </div>
 
                   {leader.email && (
-                    <div className="flex items-center gap-2 pt-3 border-t border-slate-100/80 text-xs font-semibold text-[#0A2472]/60 hover:text-[#0A2472] transition-colors duration-200 mt-auto">
+                    <div className="flex items-center justify-center gap-2 pt-3 border-t border-slate-100/80 text-xs font-semibold text-[#0A2472]/60 hover:text-[#0A2472] transition-colors duration-200 mt-auto w-full text-center">
                       <Mail className="w-3.5 h-3.5 text-[#0A2472]/60 shrink-0" />
                       <a href={`mailto:${leader.email}`} className="hover:underline truncate font-mono text-[11px]">
                         {leader.email}
@@ -830,10 +831,12 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
                 {/* Board Footer */}
                 <div className="relative z-10 mt-8 pt-5 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] sm:text-[11px] text-slate-400 font-mono w-full">
                   <span>{legalLedgerFooterLeft}</span>
-                  <span className="text-[#0A2472]/60 font-semibold flex items-center gap-1.5">
-                    {renderIcon(legalFooterIcon, "w-3.5 h-3.5 text-[#0A2472]/50")}
-                    {legalLedgerFooterRight}
-                  </span>
+                  {legalLedgerFooterRight && (
+                    <span className="text-[#0A2472]/60 font-semibold flex items-center gap-1.5">
+                      {renderIcon(legalFooterIcon, "w-3.5 h-3.5 text-[#0A2472]/50")}
+                      {legalLedgerFooterRight}
+                    </span>
+                  )}
                 </div>
               </div>
             </motion.div>

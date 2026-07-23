@@ -8,6 +8,12 @@ interface FooterProps {
   isCombined?: boolean;
 }
 
+const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={`fill-current ${className}`}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
 export default function Footer({ onScrollTo, isCombined = false }: FooterProps) {
   const currentYear = new Date().getFullYear();
   const { t, language, settings } = useLanguage();
@@ -30,7 +36,8 @@ export default function Footer({ onScrollTo, isCombined = false }: FooterProps) 
       case 'ArrowUpRight': return <ArrowUpRight className="w-4 h-4" />;
       case 'Facebook': return <Facebook className="w-4 h-4" />;
       case 'Instagram': return <Instagram className="w-4 h-4" />;
-      case 'Twitter': return <Twitter className="w-4 h-4" />;
+      case 'Twitter': return <XIcon className="w-4 h-4" />;
+      case 'X': return <XIcon className="w-4 h-4" />;
       case 'Youtube': return <Youtube className="w-4 h-4" />;
       case 'Linkedin': return <Linkedin className="w-4 h-4" />;
       case 'MoveRight': return <MoveRight className="w-4 h-4" />;
@@ -42,7 +49,7 @@ export default function Footer({ onScrollTo, isCombined = false }: FooterProps) 
   const socialLinks = [
     { key: 'social_facebook', defaultIcon: <Facebook className="w-3.5 h-3.5" />, url: settings['social_facebook'] || 'https://facebook.com/indiekraf', label: 'Facebook' },
     { key: 'social_instagram', defaultIcon: <Instagram className="w-3.5 h-3.5" />, url: settings['social_instagram'] || 'https://instagram.com/indiekraf', label: 'Instagram' },
-    { key: 'social_twitter', defaultIcon: <Twitter className="w-3.5 h-3.5" />, url: settings['social_twitter'] || 'https://x.com/indiekraf', label: 'X' },
+    { key: 'social_twitter', defaultIcon: <XIcon className="w-3.5 h-3.5" />, url: settings['social_twitter'] || 'https://x.com/indiekraf', label: 'X' },
     { key: 'social_youtube', defaultIcon: <Youtube className="w-3.5 h-3.5" />, url: settings['social_youtube'] || 'https://youtube.com/@indiekraf', label: 'YouTube' },
     { key: 'social_linkedin', defaultIcon: <Linkedin className="w-3.5 h-3.5" />, url: settings['social_linkedin'] || 'https://linkedin.com/company/indiekraf', label: 'LinkedIn' },
   ];
@@ -67,10 +74,12 @@ export default function Footer({ onScrollTo, isCombined = false }: FooterProps) 
   try {
     if (settings['footer_layanan_links']) {
       const parsed = JSON.parse(settings['footer_layanan_links']);
-      layananLinks = parsed.map((item: any) => ({
-        label: language === 'id' ? item.label_id : item.label_en,
-        url: item.url
-      }));
+      if (Array.isArray(parsed)) {
+        layananLinks = parsed.map((item: any) => ({
+          label: language === 'id' ? item.label_id : item.label_en,
+          url: item.url
+        }));
+      }
     }
   } catch (e) { console.error(e); }
 
@@ -84,10 +93,12 @@ export default function Footer({ onScrollTo, isCombined = false }: FooterProps) 
   try {
     if (settings['footer_quick_links']) {
       const parsed = JSON.parse(settings['footer_quick_links']);
-      quickLinks = parsed.map((item: any) => ({
-        label: language === 'id' ? item.label_id : item.label_en,
-        url: item.url
-      }));
+      if (Array.isArray(parsed)) {
+        quickLinks = parsed.map((item: any) => ({
+          label: language === 'id' ? item.label_id : item.label_en,
+          url: item.url
+        }));
+      }
     }
   } catch (e) { console.error(e); }
 
@@ -113,16 +124,13 @@ export default function Footer({ onScrollTo, isCombined = false }: FooterProps) 
           <div className="md:col-span-4 lg:col-span-4 flex flex-col items-start space-y-4 max-w-sm" id="footer-col-brand">
             <div 
               onClick={() => onScrollTo('home')} 
-              className="flex items-center space-x-2 cursor-pointer group inline-flex font-sans"
+              className="flex items-center cursor-pointer group inline-flex font-sans"
             >
               {settings['footer_logo'] ? (
-                <img src={settings['footer_logo']} alt="Footer Logo" className="h-8 object-contain shrink-0 hover:scale-105 transition-transform" />
+                <img src={settings['footer_logo']} alt="Footer Logo" className="h-7 w-auto object-contain shrink-0 hover:scale-105 transition-transform" />
               ) : (
-                <Logo size={28} className="shrink-0 hover:scale-105 transition-transform" />
+                <Logo size={26} className="shrink-0 max-h-7 h-7 w-auto hover:scale-105 transition-transform" />
               )}
-              <span className="font-sans font-black text-xl text-[#0A2472] tracking-tight">
-                {brandName}
-              </span>
             </div>
 
             <p className="text-sm leading-relaxed text-slate-500 font-medium text-left">

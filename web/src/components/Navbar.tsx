@@ -28,14 +28,17 @@ export default function Navbar({ onScrollTo, currentPage }: NavbarProps) {
   let rawItems = defaultNavItems;
   if (settings['navbar_menu_items']) {
     try {
-      rawItems = JSON.parse(settings['navbar_menu_items']);
+      const parsed = JSON.parse(settings['navbar_menu_items']);
+      if (Array.isArray(parsed)) {
+        rawItems = parsed;
+      }
     } catch (e) {
       rawItems = defaultNavItems;
     }
   }
 
   // Sort by order
-  const allNavItems = rawItems
+  const allNavItems = (Array.isArray(rawItems) ? rawItems : defaultNavItems)
     .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
     .map((item: any) => {
       const legacyIdKey = `nav.${item.id}_id`;
@@ -67,7 +70,10 @@ export default function Navbar({ onScrollTo, currentPage }: NavbarProps) {
   let rawLanguages = defaultLanguages;
   if (settings['navbar_languages']) {
     try {
-      rawLanguages = JSON.parse(settings['navbar_languages']);
+      const parsed = JSON.parse(settings['navbar_languages']);
+      if (Array.isArray(parsed)) {
+        rawLanguages = parsed;
+      }
     } catch (e) {
       rawLanguages = defaultLanguages;
     }
@@ -89,20 +95,10 @@ export default function Navbar({ onScrollTo, currentPage }: NavbarProps) {
           {/* Logo */}
           <div 
             onClick={() => onScrollTo('home')} 
-            className="flex items-center space-x-2.5 cursor-pointer group"
+            className="flex items-center cursor-pointer group py-1"
             id="nav-logo"
           >
-            <Logo size={38} className="shrink-0 hover:scale-105 transition-transform" />
-            <span className="font-display font-extrabold text-2xl text-[#0A2472] tracking-tight flex items-center">
-              {logoText.endsWith('.') ? (
-                <>
-                  {logoText.slice(0, -1)}
-                  <span className="text-[#364eb7] group-hover:text-blue-600 transition-colors">.</span>
-                </>
-              ) : (
-                logoText
-              )}
-            </span>
+            <Logo size={28} className="shrink-0 max-h-7 h-7 w-auto hover:scale-105 transition-transform" />
           </div>
 
           {/* Desktop Nav Items */}

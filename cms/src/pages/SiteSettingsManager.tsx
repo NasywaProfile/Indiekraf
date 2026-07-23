@@ -336,10 +336,9 @@ export default function SiteSettingsManager() {
             <h2>Tautan & Icon Media Sosial</h2>
           </div>
 
-          {[
             { key: 'social_instagram', label: 'Instagram' },
             { key: 'social_facebook', label: 'Facebook' },
-            { key: 'social_twitter', label: 'Twitter' },
+            { key: 'social_twitter', label: 'X (Twitter)' },
             { key: 'social_youtube', label: 'YouTube' },
             { key: 'social_linkedin', label: 'LinkedIn' },
           ].map((soc, i) => (

@@ -27,6 +27,7 @@ import HomeManager from '../pages/HomeManager';
 import AboutManager from '../pages/AboutManager';
 import ContactManager from '../pages/ContactManager';
 import NavbarManager from '../pages/NavbarManager';
+import Logo from '../../../web/src/components/Logo';
 
 interface DashboardLayoutProps {
   user: AdminUser;
@@ -70,14 +71,11 @@ export default function DashboardLayout({ user, currentPage, onNavigate, onLogou
       {/* ── Sidebar ─────────────────────────────── */}
       <aside className="w-64 bg-[#0A2472] flex flex-col fixed inset-y-0 left-0 z-50 shadow-2xl">
         {/* Brand */}
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-xs">IK</span>
-            </div>
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <Logo size={24} className="shrink-0 max-h-6 h-6 w-auto" />
             <div>
-              <p className="text-white font-extrabold text-sm leading-none">Indiekraf</p>
-              <p className="text-blue-200/60 text-[10px] font-semibold mt-0.5 uppercase tracking-widest">CMS Admin</p>
+              <p className="text-blue-200/60 text-[10px] font-semibold uppercase tracking-widest">CMS Admin</p>
             </div>
           </div>
         </div>

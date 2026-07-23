@@ -78,8 +78,13 @@ export default function NavbarManager() {
   ];
 
   useEffect(() => {
-    fetch('/api/settings')
-      .then(r => r.json())
+    fetch('/api/settings', {
+      headers: { 'Accept': 'application/json' },
+    })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP error ${r.status}`);
+        return r.json();
+      })
       .then(data => {
         setSettings(data);
 
@@ -138,12 +143,26 @@ export default function NavbarManager() {
     formData.append('image', file);
 
     try {
+      const token = localStorage.getItem('cms_token');
       const res = await fetch('/api/upload', {
         method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: formData,
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
+
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(res.status === 413 ? 'Ukuran file gambar terlalu besar (Maksimal 5MB)' : `Gagal upload gambar (${res.status})`);
+      }
+
+      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload foto logo');
       
       handleChange('site_logo_url', data.url);
       setMessage({ type: 'success', text: 'Foto logo berhasil diupload dari folder!' });
@@ -468,78 +487,52 @@ export default function NavbarManager() {
             <div>
               <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg">
                 <ImageIcon className="w-5 h-5 text-blue-600" />
-                <h2>1. Foto Logo & Tulisan Logo (Header Navigasi)</h2>
+                <h2>1. Foto Logo (Header Navigasi)</h2>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Atur file gambar logo serta teks berdampingan yang muncul pada pojok kiri atas Navigasi website.
+                Atur file gambar logo yang muncul pada pojok kiri atas Navigasi website.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {/* Left 2 Cols: Form Inputs */}
-            <div className="md:col-span-2 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Foto / Gambar Logo (Upload dari Folder PC)
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                        <span>Mengupload...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-3.5 h-3.5 text-white" />
-                        <span>Pilih Foto dari Folder PC</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Tulisan Logo (Teks Berdampingan)
-                </label>
-                <input
-                  type="text"
-                  value={settings['site_logo_text'] || ''}
-                  onChange={e => handleChange('site_logo_text', e.target.value)}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-bold text-[#0A2472] bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  placeholder="indiekraf."
-                />
-              </div>
+          <div className="flex flex-col items-center justify-center p-6 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-center space-y-4 max-w-md mx-auto">
+            <span className="block text-xs font-extrabold text-slate-600 uppercase tracking-wider">Preview Foto Logo Aktif</span>
+            <div className="p-4 bg-white rounded-2xl shadow-xs border border-slate-200 flex items-center justify-center min-w-[140px] h-24">
+              <img
+                src={logoUrl}
+                alt="Logo preview"
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 200 200"><path d="M24 75A45 45 0 0 1 69 30L69 125A45 45 0 0 1 24 170Z" fill="%230A2472"/><path d="M75 75A45 45 0 0 1 120 30L120 125A45 45 0 0 1 75 170Z" fill="%23293ea2"/><path d="M126 52L126 30A45 45 0 0 1 176 75L176 97A45 45 0 0 1 126 52Z" fill="%23364eb7"/><path d="M126 148L126 170A45 45 0 0 1 176 125L176 103A45 45 0 0 1 126 148Z" fill="%235f75cf"/></svg>';
+                }}
+              />
             </div>
 
-            {/* Right Col: Current Logo Photo Preview */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col items-center justify-center text-center">
-              <span className="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-2.5">Preview Foto Logo Aktif</span>
-              <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100 flex items-center justify-center w-20 h-20">
-                <img
-                  src={logoUrl}
-                  alt="Logo preview"
-                  className="max-w-full max-h-full object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 200 200"><path d="M24 75A45 45 0 0 1 69 30L69 125A45 45 0 0 1 24 170Z" fill="%230A2472"/><path d="M75 75A45 45 0 0 1 120 30L120 125A45 45 0 0 1 75 170Z" fill="%23293ea2"/><path d="M126 52L126 30A45 45 0 0 1 176 75L176 97A45 45 0 0 1 126 52Z" fill="%23364eb7"/><path d="M126 148L126 170A45 45 0 0 1 176 125L176 103A45 45 0 0 1 126 148Z" fill="%235f75cf"/></svg>';
-                  }}
-                />
-              </div>
-            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Mengupload...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 text-white" />
+                  <span>Pilih Foto dari Folder PC</span>
+                </>
+              )}
+            </button>
           </div>
 
           <div className="flex justify-end pt-3 border-t border-slate-100">

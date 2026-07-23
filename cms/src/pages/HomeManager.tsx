@@ -54,6 +54,77 @@ const defaultPillars: PillarItem[] = [
   },
 ];
 
+const defaultServicesPillars = [
+  {
+    id: 'media',
+    number: '01',
+    title: 'Indiekraf Media',
+    icon: 'Newspaper',
+    image_url: '/gambar.jpg',
+    img_tag_id: 'PORTAL MEDIA & PUBLIKASI',
+    img_tag_en: 'MEDIA PORTAL & PUBLICATION',
+    description_id: 'Portal media ekonomi dan industri kreatif terkemuka di Indonesia dengan jangkauan pembaca yang luas dan tertarget.',
+    description_en: 'Leading creative economy & industry media portal in Indonesia with a wide and targeted readership.',
+    link: '#media',
+    cards: [
+      { title: 'Advertisement', title_en: 'Advertisement' },
+      { title: 'Media Placement', title_en: 'Media Placement' },
+      { title: 'Press Release', title_en: 'Press Release' },
+    ]
+  },
+  {
+    id: 'studio',
+    number: '02',
+    title: 'Indiekraf Studio',
+    icon: 'Layers',
+    image_url: '/gambar.jpg',
+    img_tag_id: 'STUDIO KREATIF & DEVELOPMENT',
+    img_tag_en: 'CREATIVE STUDIO & DEVELOPMENT',
+    description_id: 'Agensi kreatif berbasis proyek untuk mendukung transformasi digital bisnis Anda.',
+    description_en: 'Project-based creative agency to support your business digital transformation.',
+    link: '#services',
+    cards: [
+      { title: 'Branding & Visual Identity', title_en: 'Branding & Visual Identity' },
+      { title: 'Website & App Development', title_en: 'Website & App Development' },
+      { title: 'Social Media Management', title_en: 'Social Media Management' },
+    ]
+  },
+  {
+    id: 'academy',
+    number: '03',
+    title: 'Indiekraf Academy',
+    icon: 'GraduationCap',
+    image_url: '/gambar.jpg',
+    img_tag_id: 'EDUKASI & WORKSHOP',
+    img_tag_en: 'EDUCATION & WORKSHOP',
+    description_id: 'Akademi kreatif untuk akselerasi talenta dan SDM unggul di industri kreatif.',
+    description_en: 'Creative academy for talent acceleration and excellent human resources in creative industry.',
+    link: '#academy',
+    cards: [
+      { title: 'Executive Workshop', title_en: 'Executive Workshop' },
+      { title: 'Masterclass Series', title_en: 'Masterclass Series' },
+      { title: 'Talent Incubation', title_en: 'Talent Incubation' },
+    ]
+  },
+  {
+    id: 'insight',
+    number: '04',
+    title: 'Indiekraf Insight',
+    icon: 'BarChart2',
+    image_url: '/gambar.jpg',
+    img_tag_id: 'RISET INDUSTRI KREATIF BERBASIS DATA',
+    img_tag_en: 'DATA-DRIVEN CREATIVE INDUSTRY RESEARCH',
+    description_id: 'Pusat riset dan analisis data industri kreatif untuk merumuskan keputusan strategis.',
+    description_en: 'Creative industry research and data analysis center for strategic decision making.',
+    link: '#insight',
+    cards: [
+      { title: 'Market Research', title_en: 'Market Research' },
+      { title: 'Industry Report', title_en: 'Industry Report' },
+      { title: 'Data Analytics', title_en: 'Data Analytics' },
+    ]
+  }
+];
+
 interface AboutPillItem {
   id: string;
   labelId: string;
@@ -262,22 +333,92 @@ export default function HomeManager() {
     setIsPillarModalOpen(true);
   };
 
+  const compressImageIfNeeded = async (file: File): Promise<File> => {
+    if (!file.type.startsWith('image/') || file.size <= 1024 * 1024) {
+      return file;
+    }
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1600;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+                  resolve(newFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              0.85
+            );
+          } else {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const safeUploadImage = async (file: File) => {
+    const fileToUpload = await compressImageIfNeeded(file);
+    const formData = new FormData();
+    formData.append('image', fileToUpload);
+    const token = localStorage.getItem('cms_token');
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(res.status === 413 ? 'Ukuran file gambar terlalu besar (Maksimal 5MB)' : `Gagal upload gambar (HTTP ${res.status})`);
+    }
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || `Gagal upload gambar (HTTP ${res.status})`);
+    }
+    return data.url;
+  };
+
   const handleFileUploadPillar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingPillar(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
-      setFormPillarImage(data.url);
+      const url = await safeUploadImage(file);
+      setFormPillarImage(url);
     } catch (err: any) {
       alert(err.message || 'Gagal mengupload foto');
     } finally {
@@ -295,6 +436,7 @@ export default function HomeManager() {
 
     const cleanId = formPillarId.trim() || formPillarTitle.trim().toLowerCase().replace(/[^a-z0-9]/g, '-');
 
+    let updatedPillars: PillarItem[] = [];
     if (editingPillarIndex === null) {
       const newItem: PillarItem = {
         id: cleanId,
@@ -305,7 +447,7 @@ export default function HomeManager() {
         link: formPillarLink.trim() || '#',
         order: pillars.length + 1
       };
-      setPillars([...pillars, newItem]);
+      updatedPillars = [...pillars, newItem];
     } else {
       const updated = [...pillars];
       updated[editingPillarIndex] = {
@@ -317,8 +459,10 @@ export default function HomeManager() {
         image: formPillarImage.trim() || '/gambar.jpg',
         link: formPillarLink.trim() || '#'
       };
-      setPillars(updated);
+      updatedPillars = updated;
     }
+    setPillars(updatedPillars);
+    handleChange('hero_pillars_list', JSON.stringify(updatedPillars));
     setIsPillarModalOpen(false);
   };
 
@@ -354,26 +498,38 @@ export default function HomeManager() {
     if (!file) return;
 
     setUploadingServicePillarIdx(index);
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
+      const url = await safeUploadImage(file);
       
-      const rawPillars = settings['services_pillars_list'] ? JSON.parse(settings['services_pillars_list']) : [];
-      if (rawPillars[index]) {
-        rawPillars[index].image_url = data.url;
-        handleChange('services_pillars_list', JSON.stringify(rawPillars));
+      let rawPillars: any[] = [];
+      if (settings['services_pillars_list']) {
+        try {
+          rawPillars = JSON.parse(settings['services_pillars_list']);
+        } catch (err) {}
       }
+      if (!Array.isArray(rawPillars)) rawPillars = [];
+
+      // Ensure array has enough elements up to index
+      while (rawPillars.length <= index) {
+        rawPillars.push({
+          id: `pillar-${rawPillars.length + 1}`,
+          title: `Pilar ${rawPillars.length + 1}`,
+          image_url: ''
+        });
+      }
+
+      rawPillars[index] = {
+        ...rawPillars[index],
+        image_url: url
+      };
+
+      handleChange('services_pillars_list', JSON.stringify(rawPillars));
+      alert(`Gambar Pilar ${index + 1} berhasil diupload!`);
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload gambar');
+      alert(err.message || 'Gagal mengupload gambar pilar');
     } finally {
       setUploadingServicePillarIdx(null);
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -383,17 +539,9 @@ export default function HomeManager() {
     if (!file) return;
 
     setIsUploadingAboutPhoto(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
-      setAboutPhotos([...aboutPhotos, data.url]);
+      const url = await safeUploadImage(file);
+      setAboutPhotos([...aboutPhotos, url]);
     } catch (err: any) {
       alert(err.message || 'Gagal mengupload foto');
     } finally {
@@ -407,18 +555,10 @@ export default function HomeManager() {
     if (!file) return;
 
     setIsUploadingHeroLeft(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
-      handleChange('hero_icon_left', data.url);
-      handleChange('hero.icon_left', data.url);
+      const url = await safeUploadImage(file);
+      handleChange('hero_icon_left', url);
+      handleChange('hero.icon_left', url);
     } catch (err: any) {
       alert(err.message || 'Gagal mengupload icon kiri');
     } finally {
@@ -432,18 +572,10 @@ export default function HomeManager() {
     if (!file) return;
 
     setIsUploadingHeroRight(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
-      handleChange('hero_icon_right', data.url);
-      handleChange('hero.icon_right', data.url);
+      const url = await safeUploadImage(file);
+      handleChange('hero_icon_right', url);
+      handleChange('hero.icon_right', url);
     } catch (err: any) {
       alert(err.message || 'Gagal mengupload icon kanan');
     } finally {
@@ -1847,24 +1979,54 @@ export default function HomeManager() {
             </div>
 
             {(() => {
-              let pillarsList = [];
+              let pillarsList: any[] = [];
               if (settings['services_pillars_list']) {
                 try {
                   pillarsList = JSON.parse(settings['services_pillars_list']);
                 } catch (e) {}
               }
               if (!Array.isArray(pillarsList) || pillarsList.length === 0) {
-                return (
-                  <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                    <AlertCircle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500 font-medium">Belum ada pilar layanan yang dikonfigurasi. Silakan tambahkan pilar layanan terlebih dahulu.</p>
-                  </div>
-                );
+                pillarsList = defaultServicesPillars;
               }
 
-              // Ensure active index is within bounds
-              const currentIdx = activePillarEditIdx >= pillarsList.length ? 0 : activePillarEditIdx;
+              const currentIdx = activePillarEditIdx >= pillarsList.length ? Math.max(0, pillarsList.length - 1) : activePillarEditIdx;
               const pillar = pillarsList[currentIdx] || {};
+
+              const handleAddPillar = () => {
+                const rawPillars = [...pillarsList];
+                const newNum = `0${rawPillars.length + 1}`.slice(-2);
+                const newPillar = {
+                  id: `pillar-${Date.now()}`,
+                  number: newNum,
+                  title: `Pilar Layanan Baru ${rawPillars.length + 1}`,
+                  icon: 'Layers',
+                  image_url: '/gambar.jpg',
+                  img_tag_id: 'LAYANAN KREATIF DIGITAL',
+                  img_tag_en: 'DIGITAL CREATIVE SERVICE',
+                  description_id: 'Deskripsi pilar layanan baru...',
+                  description_en: 'New service pillar description...',
+                  link: '#',
+                  cards: [
+                    { title: 'Sub Layanan 1', title_en: 'Sub Service 1' }
+                  ]
+                };
+                rawPillars.push(newPillar);
+                handleChange('services_pillars_list', JSON.stringify(rawPillars));
+                setActivePillarEditIdx(rawPillars.length - 1);
+              };
+
+              const handleDeleteCurrentPillar = () => {
+                if (pillarsList.length <= 1) {
+                  alert('Minimal harus ada 1 pilar layanan!');
+                  return;
+                }
+                if (window.confirm(`Hapus pilar layanan "${pillar.title || 'ini'}"?`)) {
+                  const rawPillars = [...pillarsList];
+                  rawPillars.splice(currentIdx, 1);
+                  handleChange('services_pillars_list', JSON.stringify(rawPillars));
+                  setActivePillarEditIdx(Math.max(0, currentIdx - 1));
+                }
+              };
 
               // Icon mapping
               const getIconComponent = (iconName: string) => {
@@ -1878,28 +2040,38 @@ export default function HomeManager() {
 
               return (
                 <div className="space-y-6">
-                  {/* Premium Navigation Tabs */}
-                  <div className="flex flex-wrap gap-2.5 bg-slate-50 p-2 rounded-2xl border border-slate-200/50">
-                    {pillarsList.map((p: any, idx: number) => {
-                      const isActive = currentIdx === idx;
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setActivePillarEditIdx(idx)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                            isActive
-                              ? 'bg-[#0A2472] text-white shadow-lg shadow-blue-900/15 scale-[1.02]'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                          }`}
-                        >
-                          <div className={`p-1 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                            {getIconComponent(p.icon || 'Layers')}
-                          </div>
-                          <span>{p.number || `0${idx + 1}`}. {p.title || 'Pilar'}</span>
-                        </button>
-                      );
-                    })}
+                  {/* Premium Navigation Tabs + Tambah Button */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/50">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {pillarsList.map((p: any, idx: number) => {
+                        const isActive = currentIdx === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActivePillarEditIdx(idx)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                              isActive
+                                ? 'bg-[#0A2472] text-white shadow-lg shadow-blue-900/15 scale-[1.02]'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                            }`}
+                          >
+                            <div className={`p-1 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                              {getIconComponent(p.icon || 'Layers')}
+                            </div>
+                            <span>{p.number || `0${idx + 1}`}. {p.title || 'Pilar'}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddPillar}
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm hover:shadow transition-all cursor-pointer shrink-0"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Tambah Pilar Layanan</span>
+                    </button>
                   </div>
 
                   {/* Active Pillar Editor Card */}
@@ -1910,7 +2082,18 @@ export default function HomeManager() {
                         <div className="h-4 w-px bg-slate-200" />
                         <span className="text-base font-extrabold text-[#0A2472]">Mengedit Konten: {pillar.title || 'Tanpa Judul'}</span>
                       </div>
-                      <span className="px-3 py-1 bg-indigo-50 text-[#0A2472] text-[10px] font-bold rounded-full border border-indigo-100">Aktif</span>
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 bg-indigo-50 text-[#0A2472] text-[10px] font-bold rounded-full border border-indigo-100">Aktif</span>
+                        <button
+                          type="button"
+                          onClick={handleDeleteCurrentPillar}
+                          className="flex items-center gap-1 px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] rounded-lg transition-colors cursor-pointer border border-rose-100"
+                          title="Hapus Pilar Ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Hapus Pilar</span>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -2004,43 +2187,6 @@ export default function HomeManager() {
                               }}
                               className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100"
                               placeholder="Contoh: PUBLISHING FOR BRAND CREDIBILITY"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                              <Info className="w-3 h-3 text-slate-400" />
-                              <span>Caption Overlay Gambar (ID)</span>
-                            </label>
-                            <textarea
-                              rows={2}
-                              value={pillar.img_desc_id || ''}
-                              onChange={e => {
-                                const rawPillars = [...pillarsList];
-                                rawPillars[currentIdx].img_desc_id = e.target.value;
-                                handleChange('services_pillars_list', JSON.stringify(rawPillars));
-                              }}
-                              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 leading-relaxed"
-                              placeholder="Deskripsi singkat di bagian bawah gambar..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                              <Info className="w-3 h-3 text-slate-400" />
-                              <span>Caption Overlay Gambar (EN)</span>
-                            </label>
-                            <textarea
-                              rows={2}
-                              value={pillar.img_desc_en || ''}
-                              onChange={e => {
-                                const rawPillars = [...pillarsList];
-                                rawPillars[currentIdx].img_desc_en = e.target.value;
-                                handleChange('services_pillars_list', JSON.stringify(rawPillars));
-                              }}
-                              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 leading-relaxed"
-                              placeholder="Short description overlay..."
                             />
                           </div>
                         </div>

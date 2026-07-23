@@ -387,8 +387,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
-      if (res.ok) {
+      const res = await fetch('/api/settings', {
+        headers: { 'Accept': 'application/json' },
+      });
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         setSettings(data);
       }
@@ -409,15 +412,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (key: string): string => {
     const langKey = (language || 'id').toLowerCase() as LanguageType;
     
-    // 1. Cek langsung key dengan suffix bahasa (misal nav.home_id atau hero.title_id)
+    // 1. Cek langsung key dengan suffix bahasa saat ini (misal nav.home_id atau hero.title_id)
     if (settings[`${key}_${langKey}`]) {
       return settings[`${key}_${langKey}`];
     }
-    // 2. Cek langsung key tanpa suffix
-    if (settings[key]) {
-      return settings[key];
-    }
-    // 3. Mapping legacy/spesifik untuk pengaturan dari CMS
+    // 2. Mapping legacy/spesifik untuk pengaturan dari CMS berdasarkan langKey
     if (key === 'hero.badge' && settings[`hero_badge_${langKey}`]) return settings[`hero_badge_${langKey}`];
     if (key === 'hero.title' && settings[`hero_title_${langKey}`]) return settings[`hero_title_${langKey}`];
     if (key === 'hero.subtitle' && settings[`hero_subtitle_${langKey}`]) return settings[`hero_subtitle_${langKey}`];
@@ -434,9 +433,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     if (key === 'cta.whatsapp' && settings[`cta_whatsapp_${langKey}`]) return settings[`cta_whatsapp_${langKey}`];
     if (key === 'footer.desc' && settings[`footer_desc_${langKey}`]) return settings[`footer_desc_${langKey}`];
 
-    // 4. Fallback ke dictionary statis
-    const currentDict = translations[langKey] || translations['id'];
-    return currentDict[key] || translations['id'][key] || key;
+    // 3. Static translation dictionary untuk langKey
+    const currentDict = translations[langKey];
+    if (currentDict && currentDict[key]) {
+      return currentDict[key];
+    }
+
+    // 4. Fallback ke settings tanpa suffix
+    if (settings[key]) {
+      return settings[key];
+    }
+
+    return translations['id'][key] || key;
   };
 
   return (

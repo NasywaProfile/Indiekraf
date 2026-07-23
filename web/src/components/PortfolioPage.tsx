@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import {
   ArrowRight,
   ExternalLink,
@@ -26,7 +26,6 @@ interface PortfolioPageProps {
 
 interface Project {
   id: string;
-  year: string;
   client: string;
   client_en?: string;
   title: string;
@@ -68,7 +67,10 @@ let dynamicCategories = defaultFilters;
 
 if (settings['portfolio_categories']) {
   try {
-    dynamicCategories = JSON.parse(settings['portfolio_categories']);
+    const parsed = JSON.parse(settings['portfolio_categories']);
+    if (Array.isArray(parsed)) {
+      dynamicCategories = parsed;
+    }
   } catch {}
 }
 
@@ -92,13 +94,14 @@ const filters = [
         if (Array.isArray(data) && data.length > 0) {
           const mappedProjects = data.map((item: any) => ({
             id: item.id.toString(),
-            year: item.year || '2024',
             client: item.client || 'Client Name',
             client_en: item.client_en || item.client,
-            title: language === 'id' ? item.title : (item.title_en || item.title),
+            title: item.title || '',
+            title_en: item.title_en || item.title || '',
             category: item.category || 'Category',
             category_en: item.category_en || item.category,
-            description: language === 'id' ? item.description : (item.description_en || item.description),
+            description: item.description || '',
+            description_en: item.description_en || item.description || '',
             type: item.category_id || 'website',
             image_url: item.image_url,
             btn_text_id: item.btn_text_id || '',
@@ -112,43 +115,16 @@ const filters = [
   }, [language]);
 
   const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    hidden: { opacity: 1 },
+    visible: { opacity: 1 }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1] as const
-      }
-    }
+    hidden: { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0 }
   };
 
-  const filteredProjects =
-  activeFilter === 'all'
-    ? projects
-    : projects.filter(p => {
-        const filterObj = filters.find(f => f.id === activeFilter);
-
-        return (
-          filterObj &&
-          (
-            (p.category || '').toLowerCase().includes(filterObj.id.toLowerCase()) ||
-            (p.category || '').toLowerCase() === filterObj.label.toLowerCase() ||
-            (p.category_en || '').toLowerCase() === filterObj.label.toLowerCase()
-          )
-        );
-      });
+  const filteredProjects = projects;
 
   const t = {
     id: {
@@ -247,42 +223,15 @@ const filters = [
       <section className="w-full py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
 
-          {/* Filter Tabs */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-3 mb-16"
-          >
-            {filters
-              .filter(filter => filter.id !== 'all')
-              .map((filter) => (<button
-                key={filter.id}
-                onClick={() => setActiveFilter(filter.id)}
-                className={`px-6 py-2.5 rounded-[10px] text-xs font-bold transition-all duration-300 border ${activeFilter === filter.id
-                  ? 'bg-[#2563eb] text-white border-[#2563eb] shadow-lg shadow-blue-500/20 scale-105'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30'
-                  }`}
-              >
-                {filter.label}
-              </button>
-              ))}
-          </motion.div>
-
           {/* Projects Grid */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-50px" }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredProjects.map((project) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProjects.map((project, idx) => (
                 <motion.div
                   key={project.id}
-                  layout
-                  variants={itemVariants}
+                  initial={{ opacity: 0, y: 35, scale: 0.98 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.5, delay: (idx % 3) * 0.1, ease: [0.16, 1, 0.3, 1] }}
                   whileHover={{ y: -8, transition: { duration: 0.3 } }}
                   className="bg-white rounded-[10px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-shadow duration-500 group flex flex-col h-full"
                 >
@@ -299,15 +248,12 @@ const filters = [
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-white/10 transition-colors duration-500" />
                     )}
 
-                    <div className="absolute top-6 left-6 px-3 py-1 bg-white/10 rounded-[10px] text-[10px] font-bold tracking-widest backdrop-blur-sm border border-white/10 z-10">
-                      {project.year}
-                    </div>
                     <div className="space-y-1 relative z-10">
                       <span className="text-sm font-bold text-white/80 tracking-wide">
                         {language === 'id' ? project.client : (project.client_en || project.client)}
                       </span>
                       <h3 className="text-xl font-sans font-extrabold leading-tight">
-                        {project.title}
+                        {language === 'id' ? (project.title || project.title_en) : (project.title_en || project.title)}
                       </h3>
                     </div>
                   </div>
@@ -319,7 +265,7 @@ const filters = [
                         {language === 'id' ? project.category : (project.category_en || project.category)}
                       </p>
                       <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                        {project.description}
+                        {language === 'id' ? (project.description || project.description_en) : (project.description_en || project.description)}
                       </p>
                     </div>
 
@@ -345,8 +291,7 @@ const filters = [
                   </div>
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </motion.div>
+          </div>
         </div>
       </section>
 

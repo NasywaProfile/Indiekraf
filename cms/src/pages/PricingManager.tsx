@@ -238,39 +238,63 @@ export default function PricingManager() {
   };
 
   const handleSave = async () => {
+    if (!editPlan.name.trim()) {
+      alert('Nama paket wajib diisi!');
+      return;
+    }
     setIsSaving(true);
     try {
       const method = editPlan.id ? 'PUT' : 'POST';
       const url = editPlan.id ? `/api/pricing/${editPlan.id}` : '/api/pricing';
-      let cleanPrice = editPlan.price.replace(/^Mulai dari\s+/i, '').replace(/\s*\/paket$/i, '').trim();
+      let cleanPrice = (editPlan.price || '').replace(/^Mulai dari\s+/i, '').replace(/\s*\/paket$/i, '').trim();
       if (!/^Rp/i.test(cleanPrice) && cleanPrice !== '') {
         cleanPrice = 'Rp ' + cleanPrice;
       }
       let cleanPriceEn = (editPlan.price_en || '').replace(/^Starting from\s+/i, '').replace(/\s*\/package$/i, '').trim();
+      
+      const validColors = ['blue', 'purple', 'pink', 'green'];
+      const safeColor = validColors.includes(editPlan.color_theme) ? editPlan.color_theme : 'blue';
+
       const planToSave = {
         ...editPlan,
         slug: editPlan.slug || editPlan.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || `plan-${Date.now()}`,
-        color_theme: editPlan.color_theme || 'blue',
-        category: editPlan.category || '',
+        color_theme: safeColor,
+        category: editPlan.category || selectedCategory || '',
+        category_title: editPlan.category_title || '',
+        category_title_en: editPlan.category_title_en || '',
+        category_subtitle: editPlan.category_subtitle || '',
+        category_subtitle_en: editPlan.category_subtitle_en || '',
+        category_icon: editPlan.category_icon || 'Target',
+        subtitle: editPlan.subtitle || '',
+        subtitle_en: editPlan.subtitle_en || editPlan.subtitle || '',
+        badge: editPlan.badge || '',
+        badge_en: editPlan.badge_en || editPlan.badge || '',
         price: cleanPrice,
         price_en: cleanPriceEn,
         name_en: editPlan.name_en || editPlan.name,
-        subtitle_en: editPlan.subtitle_en || editPlan.subtitle,
-        badge_en: editPlan.badge_en || editPlan.badge,
-        bullets_en: editPlan.bullets_en?.length ? editPlan.bullets_en : editPlan.bullets,
+        bullets: (editPlan.bullets || []).filter(b => b.trim() !== ''),
+        bullets_en: (editPlan.bullets_en || []).filter(b => b.trim() !== ''),
         btn_text_id: editPlan.btn_text_id || '',
         btn_text_en: editPlan.btn_text_en || '',
         btn_link: editPlan.btn_link || ''
       };
-      await fetch(url, { method, headers, body: JSON.stringify(planToSave) });
+      
+      const res = await fetch(url, { method, headers, body: JSON.stringify(planToSave) });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.error) {
+        throw new Error(data.message || data.error || `Gagal menyimpan paket harga (HTTP ${res.status})`);
+      }
+
       setShowModal(false);
-      fetchPlans();
+      await fetchPlans();
       alert('Paket Harga Berhasil Disimpan!');
-    } catch (err) {
-      alert('Gagal menyimpan paket harga. Silakan coba lagi.');
-      console.error(err);
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyimpan paket harga. Silakan coba lagi.');
+      console.error('Error saving plan:', err);
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   const handleDelete = async (id: number) => {
@@ -651,22 +675,27 @@ export default function PricingManager() {
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Harga</p>
                                     <p className="text-lg font-bold text-[#0A2472]">{plan.price}</p>
                                   </div>
-                                  {(plan.bullets && plan.bullets.length > 0) && (
-                                    <div className="mb-3">
-                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Fitur</p>
-                                      <ul className="space-y-1.5">
-                                        {plan.bullets.slice(0, 3).map((bullet, i) => (
-                                          <li key={i} className="flex items-start gap-2">
-                                            <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                            <span className="text-[11px] text-slate-600 line-clamp-2">{bullet}</span>
-                                          </li>
-                                        ))}
-                                        {plan.bullets.length > 3 && (
-                                          <li className="text-[10px] text-slate-400 italic">+{plan.bullets.length - 3} fitur lainnya</li>
-                                        )}
-                                      </ul>
-                                    </div>
-                                  )}
+                                  {(() => {
+                                    const bulletsArr = Array.isArray(plan.bullets)
+                                      ? plan.bullets
+                                      : (typeof plan.bullets === 'string' ? (() => { try { const p = JSON.parse(plan.bullets); return Array.isArray(p) ? p : []; } catch { return []; } })() : []);
+                                    return bulletsArr.length > 0 && (
+                                      <div className="mb-3">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Fitur</p>
+                                        <ul className="space-y-1.5">
+                                          {bulletsArr.slice(0, 3).map((bullet: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2">
+                                              <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                              <span className="text-[11px] text-slate-600 line-clamp-2">{bullet}</span>
+                                            </li>
+                                          ))}
+                                          {bulletsArr.length > 3 && (
+                                            <li className="text-[10px] text-slate-400 italic">+{bulletsArr.length - 3} fitur lainnya</li>
+                                          )}
+                                        </ul>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
 
                                 <div className="border-t border-slate-100 px-4 py-3 bg-slate-50/50 flex items-center justify-between gap-2">

@@ -36,11 +36,20 @@ export default function AdminApp() {
     // Verify token
     fetch('/api/auth/verify', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        'Accept': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
     })
-      .then(r => r.json())
+      .then(r => {
+        const contentType = r.headers.get('content-type') || '';
+        if (r.ok && contentType.includes('application/json')) {
+          return r.json();
+        }
+        return { valid: false };
+      })
       .then(data => {
-        if (data.valid) setUser(data.user);
+        if (data && data.valid) setUser(data.user);
       })
       .catch(() => localStorage.removeItem('cms_token'))
       .finally(() => setIsLoading(false));

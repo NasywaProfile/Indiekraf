@@ -20,10 +20,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify({ username, password }),
       });
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        throw new Error(`Server status ${res.status}`);
+      }
       if (!res.ok) {
         setError(data.error || 'Login gagal');
         return;
