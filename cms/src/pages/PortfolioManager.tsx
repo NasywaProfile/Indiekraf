@@ -292,6 +292,22 @@ export default function PortfolioManager() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Portofolio & Karya</h1>
+          <p className="text-sm text-slate-500 mt-1">Atur banner hero, filter kategori, dan daftar galeri portofolio</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSaveSettings}
+          disabled={isSavingSettings}
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+        >
+          <Save className="w-4 h-4" />
+          {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
+        </button>
+      </div>
+
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4">
         <button

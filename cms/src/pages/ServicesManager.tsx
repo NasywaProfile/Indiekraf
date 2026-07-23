@@ -245,11 +245,20 @@ export default function ServicesManager() {
   
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
         <div>
           <h1 className="text-2xl font-black text-[#0A2472] tracking-tight">Manajemen Layanan</h1>
           <p className="text-sm text-slate-500 font-medium mt-1">Atur konten header dan daftar pilar layanan utama</p>
         </div>
+        <button
+          type="button"
+          onClick={handleSaveSettings}
+          disabled={isSavingSettings}
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+        >
+          <Save className="w-4 h-4" />
+          {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
+        </button>
       </div>
 
       {message && (
