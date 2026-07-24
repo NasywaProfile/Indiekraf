@@ -39,7 +39,11 @@ class BlogController extends Controller
         $data = $request->all();
         $data['author'] = $data['author'] ?? 'Tim Indiekraf';
         $data['author_en'] = $data['author_en'] ?? 'Indiekraf Team';
-        $data['is_published'] = $data['is_published'] ?? true;
+        if (array_key_exists('is_published', $data)) {
+            $data['is_published'] = (bool) $data['is_published'];
+        } else {
+            $data['is_published'] = true;
+        }
 
         $post = BlogPost::create($data);
 
@@ -53,9 +57,14 @@ class BlogController extends Controller
             return response()->json(['error' => 'Post not found'], 404);
         }
 
-        $post->update($request->all());
+        $data = $request->all();
+        if (array_key_exists('is_published', $data)) {
+            $data['is_published'] = (bool) $data['is_published'];
+        }
 
-        return response()->json(['success' => true]);
+        $post->update($data);
+
+        return response()->json(['success' => true, 'data' => $post]);
     }
 
     public function destroy($id)

@@ -88,7 +88,7 @@ export default function DashboardPage() {
               { label: '+ Artikel Baru', hint: 'Tambah konten blog', page: 'blog' },
               { label: '+ Portofolio Baru', hint: 'Tambah karya / proyek', page: 'portfolio' },
               { label: 'Edit Paket Harga', hint: 'Update pricing plan', page: 'pricing' },
-              { label: 'Pengaturan Website', hint: 'Hero text, stats, kontak', page: 'settings' },
+              { label: 'Edit Info Kontak', hint: 'Alamat, email & telepon', page: 'contact' },
             ].map(item => (
               <a
                 key={item.label}
@@ -122,7 +122,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-start gap-3">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-300 mt-1.5 flex-shrink-0" />
-              <p className="text-blue-100/80 text-xs leading-relaxed">Gunakan menu <strong className="text-white">Pengaturan</strong> untuk mengubah teks hero, statistik, dan informasi kontak.</p>
+              <p className="text-blue-100/80 text-xs leading-relaxed">Gunakan tombol <strong className="text-white">Simpan Perubahan</strong> di pojok kanan bawah tiap section untuk memperbarui data.</p>
             </div>
             <div className="flex items-start gap-3">
               <span className="w-1.5 h-1.5 rounded-full bg-green-300 mt-1.5 flex-shrink-0" />

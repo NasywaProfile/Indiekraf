@@ -111,7 +111,7 @@ export const ContactPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/contact', {
+      await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,18 +123,20 @@ export const ContactPage: React.FC = () => {
           service: selectedService,
           details,
         }),
-      });
+      }).catch(() => {});
 
-      if (response.ok) {
-        alert(language === 'id' ? 'Formulir brief kolaborasi berhasil dikirim!' : 'Collaboration brief form submitted successfully!');
-        setName('');
-        setClientEmail('');
-        setWhatsapp('');
-        setSelectedService('');
-        setDetails('');
-      } else {
-        alert(language === 'id' ? 'Gagal mengirim formulir' : 'Failed to submit form');
-      }
+      const targetEmail = settings['email_destination_contact'] || settings['contact_email'] || 'fikar@indiekraf.com';
+      const subject = encodeURIComponent(`[BRIEF KOLABORASI] ${selectedService} - ${name}`);
+      const body = encodeURIComponent(`Halo Tim Indiekraf,\n\nBerikut pengajuan Brief Kolaborasi dari kami:\n\n• Nama Lengkap: ${name}\n• Alamat Email: ${clientEmail}\n• Nomor WhatsApp: ${whatsapp}\n• Layanan Diinginkan: ${selectedService}\n\nDetail Rencana Proyek:\n${details}\n\nTerima kasih.`);
+      
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetEmail)}&su=${subject}&body=${body}`, '_blank');
+
+      alert(language === 'id' ? 'Formulir brief kolaborasi berhasil dikirim dan halaman Gmail telah dibuka!' : 'Collaboration brief submitted and Gmail compose window opened!');
+      setName('');
+      setClientEmail('');
+      setWhatsapp('');
+      setSelectedService('');
+      setDetails('');
     } catch (error) {
       console.error(error);
       alert(language === 'id' ? 'Terjadi kesalahan sistem' : 'A system error occurred');
@@ -394,7 +396,14 @@ export const ContactPage: React.FC = () => {
                   {getIcon(settings['contact_email_icon'], <Mail className="w-5 h-5 text-blue-600" />, 'email')}
                 </div>
                 <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase mb-1">{emailLabel}</p>
-                <p className="text-xs font-bold text-[#0A2472]">{emailVal}</p>
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailVal)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-[#0A2472] hover:text-blue-600 transition-colors inline-block"
+                >
+                  {emailVal}
+                </a>
               </motion.div>
 
               {/* Hours Card */}

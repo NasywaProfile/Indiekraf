@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Info, Users, Target, ShieldCheck, Milestone, Layers, CheckCircle2, AlertCircle, Edit2, X, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 type AboutTab = 'hero_stats' | 'leadership' | 'purpose' | 'legal' | 'timeline' | 'pillars';
 
 export default function AboutManager() {
+  const { toast, confirmDialog } = useToast();
   const [activeTab, setActiveTab] = useState<AboutTab>('hero_stats');
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -97,8 +99,10 @@ export default function AboutManager() {
       });
       if (!res.ok) throw new Error('Failed to save');
       setMessage({ type: 'success', text: 'Pengaturan halaman Tentang Kami berhasil disimpan!' });
+      toast.success('Pengaturan halaman Tentang Kami berhasil disimpan!');
     } catch (err) {
       setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan pengaturan Tentang Kami' });
+      toast.error('Terjadi kesalahan saat menyimpan pengaturan Tentang Kami');
     } finally {
       setIsSaving(false);
     }
@@ -176,11 +180,18 @@ export default function AboutManager() {
   };
 
   const handleDeleteMission = (index: number) => {
-    if (!confirm('Hapus poin misi ini?')) return;
-    const listId = getMissionsListId().filter((_, i) => i !== index);
-    const listEn = getMissionsListEn().filter((_, i) => i !== index);
-    handleChange('about_mission_id', listId.join('\n'));
-    handleChange('about_mission_en', listEn.join('\n'));
+    confirmDialog({
+      title: 'Hapus Poin Misi',
+      message: 'Apakah Anda yakin ingin menghapus poin misi ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const listId = getMissionsListId().filter((_, i) => i !== index);
+        const listEn = getMissionsListEn().filter((_, i) => i !== index);
+        handleChange('about_mission_id', listId.join('\n'));
+        handleChange('about_mission_en', listEn.join('\n'));
+        toast.success('Poin misi berhasil dihapus!');
+      }
+    });
   };
 
   // ─── HANDLERS FOR LEGALITAS MODAL ───
@@ -244,9 +255,16 @@ export default function AboutManager() {
   };
 
   const handleDeleteLegalItem = (idx: number) => {
-    if (!confirm('Hapus item legalitas ini?')) return;
-    const list = getLegalList().filter((_, i) => i !== idx);
-    handleChange('about_legal_list', JSON.stringify(list));
+    confirmDialog({
+      title: 'Hapus Item Legalitas',
+      message: 'Apakah Anda yakin ingin menghapus item legalitas ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const list = getLegalList().filter((_, i) => i !== idx);
+        handleChange('about_legal_list', JSON.stringify(list));
+        toast.success('Item legalitas berhasil dihapus!');
+      }
+    });
   };
 
   // ─── HANDLERS FOR TIMELINE MODAL ───
@@ -318,10 +336,17 @@ export default function AboutManager() {
   };
 
   const handleDeleteClient = (idx: number) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus client ini?')) return;
-    const list = getClientsList();
-    list.splice(idx, 1);
-    handleChange('about_clients_list', JSON.stringify(list));
+    confirmDialog({
+      title: 'Hapus Client',
+      message: 'Apakah Anda yakin ingin menghapus client ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const list = getClientsList();
+        list.splice(idx, 1);
+        handleChange('about_clients_list', JSON.stringify(list));
+        toast.success('Client berhasil dihapus!');
+      }
+    });
   };
 
   const handleSaveClientModalItem = (e: React.FormEvent) => {
@@ -504,9 +529,9 @@ export default function AboutManager() {
     try {
       const url = await safeUploadImage(file);
       handleChange('about_hero_image', url);
-      alert('Gambar Latar Hero Tentang Kami berhasil diunggah!');
+      toast.success('Gambar Latar Hero Tentang Kami berhasil diunggah!');
     } catch (err: any) {
-      alert(err.message || 'Gagal mengunggah gambar hero');
+      toast.error(err.message || 'Gagal mengunggah gambar hero');
     } finally {
       setUploadingHeroImage(false);
       if (e.target) e.target.value = '';
@@ -520,8 +545,9 @@ export default function AboutManager() {
     try {
       const url = await safeUploadImage(file);
       setFormLeader(p => ({ ...p, image: url }));
+      toast.success('Foto kepemimpinan berhasil diunggah!');
     } catch (err: any) {
-      alert(err.message || 'Gagal mengunggah foto');
+      toast.error(err.message || 'Gagal mengunggah foto');
     } finally {
       setUploadingLeaderImage(false);
       if (e.target) e.target.value = '';
@@ -543,10 +569,17 @@ export default function AboutManager() {
   };
 
   const handleDeleteLeader = (idx: number) => {
-    if (!confirm('Hapus anggota tim kepemimpinan ini?')) return;
-    const list = [...getLeadershipList()];
-    list.splice(idx, 1);
-    handleChange('about_leadership_list', JSON.stringify(list));
+    confirmDialog({
+      title: 'Hapus Tim Kepemimpinan',
+      message: 'Apakah Anda yakin ingin menghapus anggota tim kepemimpinan ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const list = [...getLeadershipList()];
+        list.splice(idx, 1);
+        handleChange('about_leadership_list', JSON.stringify(list));
+        toast.success('Anggota tim kepemimpinan berhasil dihapus!');
+      }
+    });
   };
 
   if (isLoading) {
@@ -555,22 +588,11 @@ export default function AboutManager() {
 
   return (
     <div className="max-w-6xl space-y-8 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Halaman Tentang Kami (About Us)</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Diurutkan persis sesuai urutan tampilan dari atas ke bawah pada halaman Tentang Kami (AboutPage) website Indiekraf.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Halaman Tentang Kami (About Us)</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Diurutkan persis sesuai urutan tampilan dari atas ke bawah pada halaman Tentang Kami (AboutPage) website Indiekraf.
+        </p>
       </div>
 
       {message && (
@@ -857,7 +879,7 @@ export default function AboutManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Hero & Statistik'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1026,7 +1048,7 @@ export default function AboutManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Tim Kepemimpinan'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1262,7 +1284,7 @@ export default function AboutManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Visi & Misi'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1612,7 +1634,7 @@ export default function AboutManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Legalitas'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1755,7 +1777,7 @@ export default function AboutManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Pendekatan Kami'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1868,7 +1890,7 @@ export default function AboutManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Siapa Yang Kami Layani'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>

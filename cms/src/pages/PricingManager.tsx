@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Save, LayoutTemplate, Layers, Check } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export interface PricingPlan {
   id?: number;
@@ -65,6 +66,7 @@ export interface PricingCategory {
 }
 
 export default function PricingManager() {
+  const { toast, confirmDialog } = useToast();
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -139,9 +141,9 @@ export default function PricingManager() {
       });
       if (!res.ok) throw new Error('Failed to save settings');
       
-      alert('Pengaturan Berhasil Disimpan!');
+      toast.success('Pengaturan berhasil disimpan!');
     } catch (err) {
-      alert('Gagal menyimpan pengaturan.');
+      toast.error('Gagal menyimpan pengaturan.');
     }
     setIsSavingSettings(false);
   };
@@ -239,7 +241,7 @@ export default function PricingManager() {
 
   const handleSave = async () => {
     if (!editPlan.name.trim()) {
-      alert('Nama paket wajib diisi!');
+      toast.warning('Nama paket wajib diisi!');
       return;
     }
     setIsSaving(true);
@@ -288,19 +290,34 @@ export default function PricingManager() {
 
       setShowModal(false);
       await fetchPlans();
-      alert('Paket Harga Berhasil Disimpan!');
+      toast.success(editPlan.id ? 'Paket harga berhasil diedit!' : 'Paket harga berhasil disimpan!');
     } catch (err: any) {
-      alert(err.message || 'Gagal menyimpan paket harga. Silakan coba lagi.');
+      toast.error(err.message || 'Gagal menyimpan paket harga. Silakan coba lagi.');
       console.error('Error saving plan:', err);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus paket harga ini?')) return;
-    await fetch(`/api/pricing/${id}`, { method: 'DELETE', headers });
-    fetchPlans();
+  const handleDelete = (id: number) => {
+    confirmDialog({
+      title: 'Hapus Paket Harga',
+      message: 'Apakah Anda yakin ingin menghapus paket harga ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/pricing/${id}`, { method: 'DELETE', headers });
+          if (res.ok) {
+            toast.success('Paket harga berhasil dihapus!');
+            fetchPlans();
+          } else {
+            toast.error('Gagal menghapus paket harga.');
+          }
+        } catch (err: any) {
+          toast.error('Gagal menghapus paket harga.');
+        }
+      }
+    });
   };
 
   const updateBullet = (idx: number, val: string, isEn = false) => {
@@ -329,20 +346,9 @@ export default function PricingManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Daftar Harga & Paket</h1>
-          <p className="text-sm text-slate-500 mt-1">Atur banner hero, kategori, dan rincian paket layanan</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSaveSettings}
-          disabled={isSavingSettings}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Daftar Harga & Paket</h1>
+        <p className="text-sm text-slate-500 mt-1">Atur banner hero, kategori, dan rincian paket layanan</p>
       </div>
 
       {/* Tabs */}
@@ -457,7 +463,7 @@ export default function PricingManager() {
                 className="flex items-center gap-2 px-6 py-3 bg-[#0A2472] text-white text-sm font-bold rounded-xl hover:bg-[#071d5a] transition-all disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {isSavingSettings ? 'Menyimpan...' : 'Simpan Pengaturan Hero'}
+                {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </div>
@@ -543,10 +549,10 @@ export default function PricingManager() {
             <button
               onClick={handleSaveSettings}
               disabled={isSavingSettings}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-emerald-200 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl text-sm font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {isSavingSettings ? 'Menyimpan...' : 'Simpan Kategori'}
+              {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </div>

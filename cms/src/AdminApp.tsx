@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
+import { ToastProvider } from './context/ToastContext';
 
 export interface AdminUser {
   id: number;
@@ -18,10 +19,17 @@ export type AdminPage =
   | 'blog'
   | 'contact'
   | 'navbar'
-  | 'settings'
   | 'cta_footer';
 
 export default function AdminApp() {
+  return (
+    <ToastProvider>
+      <AdminContent />
+    </ToastProvider>
+  );
+}
+
+function AdminContent() {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<AdminPage>('navbar');
@@ -86,3 +94,4 @@ export default function AdminApp() {
     />
   );
 }
+

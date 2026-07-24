@@ -12,9 +12,13 @@ class PressReleaseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email',
-            'details' => 'required|string',
+            'title' => 'nullable|string',
+            'subtitle' => 'nullable|string',
+            'article' => 'nullable|string',
+            'imageUrl' => 'nullable|string',
+            'name' => 'nullable|string',
+            'email' => 'nullable|email',
+            'details' => 'nullable|string',
         ]);
 
         $destinationSetting = SiteSetting::where('key', 'email_destination_press_release')->first();
@@ -22,7 +26,8 @@ class PressReleaseController extends Controller
             ? $destinationSetting->value
             : 'fikar@indiekraf.com';
 
-        Log::info("Press Release submission from: {$validated['name']} ({$validated['email']}) -> target: {$destinationEmail}");
+        $title = $validated['title'] ?? $validated['name'] ?? 'Pengajuan Rilis Pers';
+        Log::info("Press Release submission: {$title} -> target: {$destinationEmail}");
 
         return response()->json([
             'success' => true,

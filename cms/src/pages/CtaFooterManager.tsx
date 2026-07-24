@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Settings, Share2, Globe, CheckCircle2, AlertCircle, Upload, MessageCircle, Mail, MapPin, Building, Search, Briefcase, Users, Smartphone, BookOpen, PenTool, Layout, Target, Link, ArrowUpRight, Facebook, Instagram, Twitter, Youtube, Linkedin, MoveRight, ChevronRight, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export default function CtaFooterManager() {
+  const { toast } = useToast();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // Tabs for better UX
-  const [activeTab, setActiveTab] = useState<'cta' | 'footer' | 'seo'>('cta');
+  const [activeTab, setActiveTab] = useState<'cta' | 'footer'>('cta');
 
   // Dynamic Lists State
   const [layananLinks, setLayananLinks] = useState<{id: string, label_id: string, label_en: string, url: string}[]>([]);
@@ -68,24 +70,28 @@ export default function CtaFooterManager() {
 
     setIsUploadingLogo(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', file);
 
     try {
       const token = localStorage.getItem('cms_token');
       const res = await fetch('/api/upload', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Accept: 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         body: formData
       });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
         handleChange('footer_logo', data.url);
+        toast.success('Logo footer berhasil diunggah!');
       } else {
-        alert('Upload gagal');
+        toast.error(data.error || data.message || 'Upload gambar logo gagal. Pastikan format file sesuai.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Terjadi kesalahan saat upload');
+      toast.error(err.message || 'Terjadi kesalahan saat mengunggah gambar logo.');
     } finally {
       setIsUploadingLogo(false);
     }
@@ -119,8 +125,10 @@ export default function CtaFooterManager() {
       
       setSettings(payloadToSave);
       setMessage({ type: 'success', text: 'Pengaturan CTA & Footer berhasil disimpan!' });
+      toast.success('Pengaturan CTA & Footer berhasil disimpan!');
     } catch (err) {
       setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan pengaturan situs' });
+      toast.error('Terjadi kesalahan saat menyimpan pengaturan situs');
     } finally {
       setIsSaving(false);
     }
@@ -132,22 +140,11 @@ export default function CtaFooterManager() {
 
   return (
     <div className="max-w-6xl space-y-8 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola CTA & Footer Website</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Atur Call to Action, Footer, Tautan Sosial, dan SEO dengan mudah.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola CTA & Footer Website</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Atur Call to Action, Footer, dan Tautan Sosial dengan mudah.
+        </p>
       </div>
 
       {message && (
@@ -184,18 +181,6 @@ export default function CtaFooterManager() {
         >
           <Layout className="w-4 h-4 text-indigo-400" />
           2. Komponen Footer
-        </button>
-        <button
-          type="button"
-          onClick={() => { setActiveTab('seo'); setMessage(null); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
-            activeTab === 'seo'
-              ? 'bg-[#0A2472] text-white shadow-md'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
-          }`}
-        >
-          <Globe className="w-4 h-4 text-indigo-400" />
-          3. Pengaturan & SEO
         </button>
       </div>
 
@@ -288,6 +273,18 @@ export default function CtaFooterManager() {
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Bottom Save Button for CTA Section */}
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
             </div>
           </div>
         )}
@@ -568,7 +565,17 @@ export default function CtaFooterManager() {
               </div>
             </div>
 
-            {/* (Social Media block was moved above) */}
+            {/* Bottom Save Button for Footer Section */}
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
+            </div>
           </div>
         )}
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Save, Image, LayoutTemplate, Layers } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, Image, LayoutTemplate, Layers, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 interface PortfolioItem {
   id?: number;
@@ -46,6 +47,7 @@ const defaultPortfolioTypes = [
 ];
 
 export default function PortfolioManager() {
+  const { toast, confirmDialog } = useToast();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -58,6 +60,7 @@ export default function PortfolioManager() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [portfolioCategories, setPortfolioCategories] = useState<typeof defaultPortfolioTypes>([]);
   const [uploadingHeroImg, setUploadingHeroImg] = useState<'left' | 'right' | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const token = localStorage.getItem('cms_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
@@ -100,9 +103,10 @@ export default function PortfolioManager() {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = async (e?: React.FormEvent, customMsg?: string) => {
+    if (e) e.preventDefault();
     setIsSavingSettings(true);
+    setMessage(null);
     try {
       const keysToSave = [
         'portfolio_hero_badge_id', 'portfolio_hero_badge_en',
@@ -126,9 +130,11 @@ export default function PortfolioManager() {
       });
       if (!res.ok) throw new Error('Failed to save settings');
 
-      alert('Pengaturan Hero Berhasil Disimpan!');
+      setMessage({ type: 'success', text: customMsg || 'Pengaturan Portofolio Berhasil Disimpan!' });
+      toast.success(customMsg || 'Pengaturan portofolio berhasil disimpan!');
     } catch (err) {
-      alert('Gagal menyimpan pengaturan.');
+      setMessage({ type: 'error', text: 'Gagal menyimpan pengaturan portofolio.' });
+      toast.error('Gagal menyimpan pengaturan portofolio.');
     }
     setIsSavingSettings(false);
   };
@@ -217,7 +223,7 @@ export default function PortfolioManager() {
         handleChangeSetting(`portfolio_hero_image_${side}`, url);
       }
     } catch (err: any) {
-      alert(err.message || 'Gagal mengunggah gambar hero. Silakan coba lagi.');
+      toast.error(err.message || 'Gagal mengunggah gambar hero. Silakan coba lagi.');
     } finally {
       setUploadingHeroImg(null);
     }
@@ -228,7 +234,7 @@ export default function PortfolioManager() {
 
   const handleSave = async () => {
     if (!editItem.title.trim()) {
-      alert('Judul proyek wajib diisi!');
+      toast.warning('Judul proyek wajib diisi!');
       return;
     }
     setIsSaving(true);
@@ -260,18 +266,35 @@ export default function PortfolioManager() {
       }
       setShowModal(false);
       fetchItems();
-      alert('Portofolio Berhasil Disimpan!');
+      toast.success(editItem.id ? 'Data Portofolio Berhasil Diedit!' : 'Data Portofolio Berhasil Disimpan!');
+      setMessage({ type: 'success', text: 'Data Portofolio Berhasil Disimpan!' });
     } catch (err: any) {
-      alert(err.message || 'Gagal menyimpan portofolio.');
+      toast.error(err.message || 'Gagal menyimpan portofolio.');
+      setMessage({ type: 'error', text: err.message || 'Gagal menyimpan portofolio.' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus item portofolio ini?')) return;
-    await fetch(`/api/portfolio/${id}`, { method: 'DELETE', headers });
-    fetchItems();
+  const handleDelete = (id: number) => {
+    confirmDialog({
+      title: 'Hapus Item Portofolio',
+      message: 'Apakah Anda yakin ingin menghapus item portofolio ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE', headers });
+          if (res.ok) {
+            toast.success('Item portofolio berhasil dihapus!');
+            fetchItems();
+          } else {
+            toast.error('Gagal menghapus item portofolio.');
+          }
+        } catch (err) {
+          toast.error('Gagal menghapus item portofolio.');
+        }
+      }
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,45 +307,43 @@ export default function PortfolioManager() {
         setEditItem(p => ({ ...p, image_url: url }));
       }
     } catch (err: any) {
-      alert(err.message || 'Gagal mengunggah gambar proyek. Silakan coba lagi.');
+      toast.error(err.message || 'Gagal mengunggah gambar proyek. Silakan coba lagi.');
     } finally {
       setUploadingImage(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Portofolio & Karya</h1>
-          <p className="text-sm text-slate-500 mt-1">Atur banner hero, filter kategori, dan daftar galeri portofolio</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSaveSettings}
-          disabled={isSavingSettings}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+    <div className="space-y-6 pb-12">
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Portofolio & Karya</h1>
+        <p className="text-sm text-slate-500 mt-1">Atur banner hero, filter kategori, dan daftar galeri portofolio</p>
       </div>
+
+      {message && (
+        <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-semibold ${
+          message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
+          {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
+          {message.text}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4">
         <button
-          onClick={() => setActiveTab('hero')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'hero'
+          onClick={() => { setActiveTab('hero'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'hero'
               ? 'bg-[#0A2472] text-white shadow-md'
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
             }`}
         >
           <LayoutTemplate className="w-4 h-4 text-indigo-400" />
-          1. Hero Banner
+          1. Hero & Kategori
         </button>
         <button
-          onClick={() => setActiveTab('plans')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'plans'
+          onClick={() => { setActiveTab('plans'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'plans'
               ? 'bg-[#0A2472] text-white shadow-md'
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
             }`}
@@ -333,8 +354,9 @@ export default function PortfolioManager() {
       </div>
 
       {activeTab === 'hero' && (
-        <form onSubmit={handleSaveSettings} className="space-y-6 animate-in fade-in duration-200">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+        <div className="space-y-8 animate-in fade-in duration-200">
+          {/* Section 1: Hero Banner */}
+          <form onSubmit={(e) => handleSaveSettings(e, 'Pengaturan Hero Banner Berhasil Disimpan!')} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
             <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
               <LayoutTemplate className="w-5 h-5 text-indigo-600" />
               <h2>Hero Banner Halaman Portofolio</h2>
@@ -446,66 +468,80 @@ export default function PortfolioManager() {
                   </label>
                 </div>
               </div>
-
-              {/* Categories */}
-              <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tombol Filter Kategori Karya</label>
-                <p className="text-xs text-slate-500 mb-4">Tambahkan kategori/tipe portofolio yang akan ditampilkan sebagai filter. ID digunakan secara internal untuk tipe proyek.</p>
-                <div className="space-y-3">
-                  {portfolioCategories.map((cat, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row items-center gap-3">
-                      <input
-                        value={cat.id}
-                        onChange={e => updateCategory(i, 'id', e.target.value)}
-                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
-                        placeholder={`ID (cth: website)`}
-                      />
-                      <input
-                        value={cat.label_id}
-                        onChange={e => updateCategory(i, 'label_id', e.target.value)}
-                        className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
-                        placeholder={`Label ID (cth: Website & Apps)`}
-                      />
-                      <input
-                        value={cat.label_en}
-                        onChange={e => updateCategory(i, 'label_en', e.target.value)}
-                        className="flex-1 w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
-                        placeholder={`Label EN (cth: Website & Apps)`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeCategory(i)}
-                        className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 transition-colors shrink-0"
-                        title="Hapus Kategori"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addCategory}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-bold rounded-xl transition-colors mt-2"
-                  >
-                    <Plus className="w-4 h-4" /> Tambah Kategori
-                  </button>
-                </div>
-              </div>
-
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
               <button
                 type="submit"
                 disabled={isSavingSettings}
-                className="flex items-center gap-2 px-6 py-3 bg-[#0A2472] text-white text-sm font-bold rounded-xl hover:bg-[#071d5a] transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                {isSavingSettings ? 'Menyimpan...' : 'Simpan Pengaturan Hero'}
+                {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
+            </div>
+          </form>
+
+          {/* Section 2: Categories */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+            <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
+              <Layers className="w-5 h-5 text-indigo-600" />
+              <h2>Tombol Filter Kategori Karya</h2>
+            </div>
+            <p className="text-xs text-slate-500">Tambahkan kategori/tipe portofolio yang akan ditampilkan sebagai filter. ID digunakan secara internal untuk tipe proyek.</p>
+            <div className="space-y-3">
+              {portfolioCategories.map((cat, i) => (
+                <div key={i} className="flex flex-col sm:flex-row items-center gap-3">
+                  <input
+                    value={cat.id}
+                    onChange={e => updateCategory(i, 'id', e.target.value)}
+                    className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    placeholder={`ID (cth: website)`}
+                  />
+                  <input
+                    value={cat.label_id}
+                    onChange={e => updateCategory(i, 'label_id', e.target.value)}
+                    className="w-full sm:w-1/4 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    placeholder={`Label ID (cth: Website & Apps)`}
+                  />
+                  <input
+                    value={cat.label_en}
+                    onChange={e => updateCategory(i, 'label_en', e.target.value)}
+                    className="flex-1 w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    placeholder={`Label EN (cth: Website & Apps)`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeCategory(i)}
+                    className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 transition-colors shrink-0 cursor-pointer"
+                    title="Hapus Kategori"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addCategory}
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-bold rounded-xl transition-colors mt-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Tambah Kategori
+              </button>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={(e) => handleSaveSettings(e, 'Pengaturan Filter Kategori Berhasil Disimpan!')}
+                disabled={isSavingSettings}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </div>
-        </form>
+        </div>
       )}
 
       {activeTab === 'plans' && (

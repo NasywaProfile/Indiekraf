@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Save, Phone, CheckCircle2, AlertCircle, Upload, LayoutTemplate, MessageSquare, MapPin } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export default function ContactManager() {
+  const { toast } = useToast();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,8 +29,9 @@ export default function ContactManager() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Gagal upload');
       setSettings(prev => ({ ...prev, ['contact_maps_image']: data.url }));
+      toast.success('Gambar maps berhasil diunggah!');
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload gambar maps');
+      toast.error(err.message || 'Gagal mengupload gambar maps');
     } finally {
       setIsUploadingMap(false);
       if (mapFileInputRef.current) mapFileInputRef.current.value = '';
@@ -68,8 +71,10 @@ export default function ContactManager() {
       });
       if (!res.ok) throw new Error('Failed to save');
       setMessage({ type: 'success', text: 'Informasi Kontak berhasil disimpan!' });
+      toast.success('Informasi Kontak berhasil disimpan!');
     } catch (err) {
       setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan informasi kontak' });
+      toast.error('Terjadi kesalahan saat menyimpan informasi kontak');
     } finally {
       setIsSaving(false);
     }
@@ -81,22 +86,11 @@ export default function ContactManager() {
 
   return (
     <div className="max-w-6xl space-y-8 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Hubungi Kami (Contact Us)</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Atur alamat email resmi, nomor telepon/WhatsApp, alamat kantor pusat, dan tautan lokasi Peta (Google Maps).
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Hubungi Kami (Contact Us)</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Atur alamat email resmi, nomor telepon/WhatsApp, alamat kantor pusat, dan tautan lokasi Peta (Google Maps).
+        </p>
       </div>
 
       {message && (

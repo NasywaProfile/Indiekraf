@@ -19,6 +19,7 @@ import {
   X,
   Loader2
 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 interface MenuItem {
   id: string;
@@ -36,6 +37,7 @@ interface LanguageItem {
 }
 
 export default function NavbarManager() {
+  const { toast, confirmDialog } = useToast();
   const [activeTab, setActiveTab] = useState<'logo' | 'menu' | 'language'>('logo');
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -197,7 +199,7 @@ export default function NavbarManager() {
   const handleSaveMenuModalItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formId.trim() || !formLabelId.trim() || !formLabelEn.trim()) {
-      alert('Harap isi ID Target, Label Bahasa Indonesia, dan Label English!');
+      toast.warning('Harap isi ID Target, Label Bahasa Indonesia, dan Label English!');
       return;
     }
 
@@ -227,13 +229,19 @@ export default function NavbarManager() {
   };
 
   const handleDeleteMenu = (index: number) => {
-    if (window.confirm(`Yakin ingin menghapus menu "${menuItems[index].labelId}"?`)) {
-      const filtered = menuItems.filter((_, idx) => idx !== index).map((item, idx) => ({
-        ...item,
-        order: idx + 1
-      }));
-      setMenuItems(filtered);
-    }
+    confirmDialog({
+      title: 'Hapus Item Menu Navigasi',
+      message: `Yakin ingin menghapus menu "${menuItems[index].labelId}"?`,
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const filtered = menuItems.filter((_, idx) => idx !== index).map((item, idx) => ({
+          ...item,
+          order: idx + 1
+        }));
+        setMenuItems(filtered);
+        toast.success('Menu navigasi berhasil dihapus!');
+      }
+    });
   };
 
   const handleToggleMenuActive = (index: number) => {
@@ -263,9 +271,15 @@ export default function NavbarManager() {
   };
 
   const handleResetMenuDefault = () => {
-    if (window.confirm('Kembalikan daftar menu ke standar (Beranda, Tentang Kami, Layanan, Daftar Harga, Portofolio, Blog, Hubungi Kami)?')) {
-      setMenuItems(defaultMenuItems);
-    }
+    confirmDialog({
+      title: 'Reset Menu Navigasi',
+      message: 'Kembalikan daftar menu ke standar (Beranda, Tentang Kami, Layanan, Daftar Harga, Portofolio, Blog, Hubungi Kami)?',
+      confirmText: 'Ya, Reset',
+      onConfirm: () => {
+        setMenuItems(defaultMenuItems);
+        toast.info('Daftar menu dikembalikan ke standar.');
+      }
+    });
   };
 
   // ─── CRUD ACTIONS: DROPDOWN BAHASA ───────────────────────────────────────
@@ -289,7 +303,7 @@ export default function NavbarManager() {
   const handleSaveLangModalItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formLangCode.trim() || !formLangLabel.trim()) {
-      alert('Harap isi Kode Bahasa dan Label Bahasa!');
+      toast.warning('Harap isi Kode Bahasa dan Label Bahasa!');
       return;
     }
 
@@ -317,13 +331,19 @@ export default function NavbarManager() {
   };
 
   const handleDeleteLang = (index: number) => {
-    if (window.confirm(`Yakin ingin menghapus bahasa "${languages[index].label}"?`)) {
-      const filtered = languages.filter((_, idx) => idx !== index).map((item, idx) => ({
-        ...item,
-        order: idx + 1
-      }));
-      setLanguages(filtered);
-    }
+    confirmDialog({
+      title: 'Hapus Pilihan Bahasa',
+      message: `Yakin ingin menghapus bahasa "${languages[index].label}"?`,
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const filtered = languages.filter((_, idx) => idx !== index).map((item, idx) => ({
+          ...item,
+          order: idx + 1
+        }));
+        setLanguages(filtered);
+        toast.success('Pilihan bahasa berhasil dihapus!');
+      }
+    });
   };
 
   const handleToggleLangActive = (index: number) => {
@@ -353,9 +373,15 @@ export default function NavbarManager() {
   };
 
   const handleResetLangDefault = () => {
-    if (window.confirm('Kembalikan daftar bahasa ke standar (🇮🇩 IND, 🇺🇸 ENG)?')) {
-      setLanguages(defaultLanguages);
-    }
+    confirmDialog({
+      title: 'Reset Pilihan Bahasa',
+      message: 'Kembalikan daftar bahasa ke standar (🇮🇩 IND, 🇺🇸 ENG)?',
+      confirmText: 'Ya, Reset',
+      onConfirm: () => {
+        setLanguages(defaultLanguages);
+        toast.info('Daftar bahasa dikembalikan ke standar.');
+      }
+    });
   };
 
   // ─── SAVE ALL ────────────────────────────────────────────────────────────
@@ -400,8 +426,10 @@ export default function NavbarManager() {
       if (!res.ok) throw new Error('Failed to save');
       setSettings(payload);
       setMessage({ type: 'success', text: 'Perubahan Navigasi, Logo, dan Dropdown Bahasa berhasil disimpan!' });
+      toast.success('Perubahan Navigasi, Logo, dan Bahasa berhasil disimpan!');
     } catch (err) {
       setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan pengaturan' });
+      toast.error('Terjadi kesalahan saat menyimpan pengaturan');
     } finally {
       setIsSaving(false);
     }
@@ -421,22 +449,11 @@ export default function NavbarManager() {
   return (
     <div className="max-w-6xl space-y-8 pb-12">
       {/* ── Top Header ─────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Navigasi & Branding</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Atur logo, daftar menu navigasi utama, dan opsi bahasa yang tampil di bagian atas website.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSaveAll}
-          disabled={isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Navigasi & Branding</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Atur logo, daftar menu navigasi utama, dan opsi bahasa yang tampil di bagian atas website.
+        </p>
       </div>
 
       {message && (
@@ -551,7 +568,7 @@ export default function NavbarManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-extrabold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Logo & Branding'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </div>
@@ -695,7 +712,7 @@ export default function NavbarManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-extrabold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Menu Navigasi'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </div>
@@ -849,7 +866,7 @@ export default function NavbarManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-extrabold text-sm shadow-lg transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Switcher Bahasa'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </div>

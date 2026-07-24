@@ -605,7 +605,12 @@ export default function AboutPage({ onBackToHome, onScrollToContact }: AboutPage
                   {leader.email && (
                     <div className="flex items-center justify-center gap-2 pt-3 border-t border-slate-100/80 text-xs font-semibold text-[#0A2472]/60 hover:text-[#0A2472] transition-colors duration-200 mt-auto w-full text-center">
                       <Mail className="w-3.5 h-3.5 text-[#0A2472]/60 shrink-0" />
-                      <a href={`mailto:${leader.email}`} className="hover:underline truncate font-mono text-[11px]">
+                      <a
+                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(leader.email)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline truncate font-mono text-[11px]"
+                      >
                         {leader.email}
                       </a>
                     </div>

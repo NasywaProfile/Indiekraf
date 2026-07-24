@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Save, Image, LayoutTemplate, Layers } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, Image, LayoutTemplate, Layers, CheckCircle2, AlertCircle, Mail, Search } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 interface BlogPost {
   id?: number;
@@ -48,6 +49,7 @@ const defaultBlogTypes = [
 ];
 
 export default function BlogManager() {
+  const { toast, confirmDialog } = useToast();
   const [items, setItems] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -60,6 +62,7 @@ export default function BlogManager() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [blogCategories, setBlogCategories] = useState<typeof defaultBlogTypes>([]);
   const [uploadingHeroImg, setUploadingHeroImg] = useState<'left' | 'right' | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const token = localStorage.getItem('cms_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
@@ -104,13 +107,25 @@ export default function BlogManager() {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = async (e?: React.FormEvent, customMsg?: string) => {
+    if (e) e.preventDefault();
     setIsSavingSettings(true);
+    setMessage(null);
     try {
       const keysToSave = [
+        'blog_hero_badge_id', 'blog_hero_badge_en',
+        'blog_hero_title_id', 'blog_hero_title_en',
+        'blog_hero_subtitle_id', 'blog_hero_subtitle_en',
         'blog_searchPlaceholder_id', 'blog_searchPlaceholder_en',
-        'email_destination_newsletter', 'email_destination_press_release'
+        'email_destination_newsletter', 'email_destination_press_release',
+        'blog_newsletter_badge_id', 'blog_newsletter_badge_en',
+        'blog_newsletter_title_id', 'blog_newsletter_title_en',
+        'blog_newsletter_desc_id', 'blog_newsletter_desc_en',
+        'blog_newsletter_placeholder_id', 'blog_newsletter_placeholder_en',
+        'blog_press_badge_id', 'blog_press_badge_en', 'blog_press_badge',
+        'blog_press_title_id', 'blog_press_title_en', 'blog_press_title',
+        'blog_press_desc_id', 'blog_press_desc_en', 'blog_press_desc',
+        'blog_press_btn_id', 'blog_press_btn_en', 'blog_press_btn'
       ];
       const payload: Record<string, string> = {};
       for (const key of keysToSave) {
@@ -127,9 +142,11 @@ export default function BlogManager() {
       });
       if (!res.ok) throw new Error('Failed to save settings');
       
-      alert('Pengaturan Kategori & Pencarian Berhasil Disimpan!');
+      setMessage({ type: 'success', text: customMsg || 'Pengaturan Blog & Artikel Berhasil Disimpan!' });
+      toast.success(customMsg || 'Pengaturan blog & artikel berhasil disimpan!');
     } catch (err) {
-      alert('Gagal menyimpan pengaturan.');
+      setMessage({ type: 'error', text: 'Gagal menyimpan pengaturan blog.' });
+      toast.error('Gagal menyimpan pengaturan blog.');
     }
     setIsSavingSettings(false);
   };
@@ -159,7 +176,13 @@ export default function BlogManager() {
   };
 
   const openCreate = () => { setEditItem(emptyItem); setShowModal(true); };
-  const openEdit = (item: BlogPost) => { setEditItem({ ...item }); setShowModal(true); };
+  const openEdit = (item: BlogPost) => {
+    setEditItem({
+      ...item,
+      is_published: item.is_published ? 1 : 0
+    });
+    setShowModal(true);
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -169,14 +192,34 @@ export default function BlogManager() {
       await fetch(url, { method, headers, body: JSON.stringify(editItem) });
       setShowModal(false);
       fetchItems();
-    } catch {}
+      toast.success(editItem.id ? 'Artikel berhasil diedit!' : 'Artikel berhasil disimpan!');
+      setMessage({ type: 'success', text: 'Data Artikel Berhasil Disimpan!' });
+    } catch {
+      toast.error('Gagal menyimpan artikel.');
+      setMessage({ type: 'error', text: 'Gagal menyimpan artikel.' });
+    }
     setIsSaving(false);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus item portofolio ini?')) return;
-    await fetch(`/api/blog/${id}`, { method: 'DELETE', headers });
-    fetchItems();
+  const handleDelete = (id: number) => {
+    confirmDialog({
+      title: 'Hapus Artikel Blog',
+      message: 'Apakah Anda yakin ingin menghapus artikel ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/blog/${id}`, { method: 'DELETE', headers });
+          if (res.ok) {
+            toast.success('Artikel berhasil dihapus!');
+            fetchItems();
+          } else {
+            toast.error('Gagal menghapus artikel.');
+          }
+        } catch {
+          toast.error('Gagal menghapus artikel.');
+        }
+      }
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,39 +237,37 @@ export default function BlogManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Blog & Artikel</h1>
-          <p className="text-sm text-slate-500 mt-1">Atur kategori, formulir email, dan artikel publikasi</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSaveSettings}
-          disabled={isSavingSettings}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+    <div className="space-y-6 pb-12">
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Blog & Artikel</h1>
+        <p className="text-sm text-slate-500 mt-1">Atur banner hero, kategori, formulir email, dan artikel publikasi</p>
       </div>
+
+      {message && (
+        <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-semibold ${
+          message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
+          {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
+          {message.text}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200/60 pb-4">
         <button
-          onClick={() => setActiveTab('hero')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+          onClick={() => { setActiveTab('hero'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
             activeTab === 'hero'
               ? 'bg-[#0A2472] text-white shadow-md'
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
           }`}
         >
           <LayoutTemplate className="w-4 h-4 text-indigo-400" />
-          1. Kategori & Filter
+          1. Pencarian & Email
         </button>
         <button
-          onClick={() => setActiveTab('plans')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+          onClick={() => { setActiveTab('plans'); setMessage(null); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
             activeTab === 'plans'
               ? 'bg-[#0A2472] text-white shadow-md'
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
@@ -238,16 +279,15 @@ export default function BlogManager() {
       </div>
 
       {activeTab === 'hero' && (
-        <form onSubmit={handleSaveSettings} className="space-y-6 animate-in fade-in duration-200">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+        <div className="space-y-8 animate-in fade-in duration-200">
+          {/* Section 1: Hero Banner & Search */}
+          <form onSubmit={(e) => handleSaveSettings(e, 'Pengaturan Pencarian Artikel Berhasil Disimpan!')} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
             <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
-              <LayoutTemplate className="w-5 h-5 text-indigo-600" />
-              <h2>Kategori & Pencarian Artikel</h2>
+              <Search className="w-5 h-5 text-indigo-600" />
+              <h2>Pencarian Artikel</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Placeholder Pencarian (Bahasa Indonesia)</label>
                 <input
@@ -266,87 +306,249 @@ export default function BlogManager() {
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
               </div>
-
-              <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                <label className="block text-xs font-bold text-[#0A2472] uppercase tracking-wider mb-2">Pengaturan Email Penerima Formulir Blog</label>
-                <p className="text-xs text-slate-500 mb-4">Tentukan alamat email penerima untuk pendaftaran Insight/Newsletter dan pengajuan Kontribusi Rilis Pers.</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Penerima "Kirim Insight" (Newsletter)</label>
-                    <input
-                      type="email"
-                      value={settings['email_destination_newsletter'] ?? 'fikar@indiekraf.com'}
-                      onChange={e => handleChangeSetting('email_destination_newsletter', e.target.value)}
-                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
-                      placeholder="fikar@indiekraf.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Penerima "Kirim Rilis Pers Sekarang"</label>
-                    <input
-                      type="email"
-                      value={settings['email_destination_press_release'] ?? 'fikar@indiekraf.com'}
-                      onChange={e => handleChangeSetting('email_destination_press_release', e.target.value)}
-                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
-                      placeholder="fikar@indiekraf.com"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Categories */}
-              <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tombol Filter Kategori Artikel</label>
-                <p className="text-xs text-slate-500 mb-4">Tambahkan kategori/tipe portofolio yang akan ditampilkan sebagai filter. ID digunakan secara internal untuk tipe proyek.</p>
-                <div className="space-y-3">
-                  {blogCategories.map((cat, i) => (
-                    <div key={i} className="flex flex-col sm:flex-row items-center gap-3">
-                      <input 
-                        value={cat.label_id} 
-                        onChange={e => updateCategory(i, 'label_id', e.target.value)}
-                        className="w-full sm:w-1/2 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100" 
-                        placeholder={`Label ID (cth: Website & Apps)`} 
-                      />
-                      <input 
-                        value={cat.label_en} 
-                        onChange={e => updateCategory(i, 'label_en', e.target.value)}
-                        className="flex-1 w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100" 
-                        placeholder={`Label EN (cth: Website & Apps)`} 
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => removeCategory(i)} 
-                        className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 transition-colors shrink-0"
-                        title="Hapus Kategori"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                  <button 
-                    type="button" 
-                    onClick={addCategory} 
-                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-bold rounded-xl transition-colors mt-2"
-                  >
-                    <Plus className="w-4 h-4" /> Tambah Kategori
-                  </button>
-                </div>
-              </div>
-
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
               <button
                 type="submit"
                 disabled={isSavingSettings}
-                className="flex items-center gap-2 px-6 py-3 bg-[#0A2472] text-white text-sm font-bold rounded-xl hover:bg-[#071d5a] transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                {isSavingSettings ? 'Menyimpan...' : 'Simpan Pengaturan Kategori'}
+                {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
+            </div>
+          </form>
+
+          {/* Section 2: Email Destinations & Card Content CRUD */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-8">
+            <div className="flex items-center gap-2 text-[#0A2472] font-black text-lg border-b border-slate-100 pb-3">
+              <Mail className="w-5 h-5 text-indigo-600" />
+              <h2>Pengaturan Email Penerima & Konten Kartu (Newsletter & Press Release)</h2>
+            </div>
+            <p className="text-xs text-slate-500">
+              Kelola alamat email penerima serta teks konten (Badge, Judul, Deskripsi, dan Tombol) untuk Kartu "Kirim Insight" dan "Kontribusi Rilis Pers".
+            </p>
+
+            {/* Kartu 1: Kirim Insight (Newsletter) */}
+            <div className="p-5 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-5">
+              <h3 className="text-sm font-extrabold text-[#0A2472] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                1. Kartu Newsletter ("Kirim Insight")
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Penerima "Kirim Insight" (Newsletter)</label>
+                <input
+                  type="email"
+                  value={settings['email_destination_newsletter'] ?? 'fikar@indiekraf.com'}
+                  onChange={e => handleChangeSetting('email_destination_newsletter', e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  placeholder="fikar@indiekraf.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Badge (Bahasa Indonesia)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_newsletter_badge_id'] ?? 'KIRIM INSIGHT'}
+                    onChange={e => handleChangeSetting('blog_newsletter_badge_id', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Badge (English)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_newsletter_badge_en'] ?? 'SEND INSIGHT'}
+                    onChange={e => handleChangeSetting('blog_newsletter_badge_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Judul Utama (Bahasa Indonesia)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_newsletter_title_id'] ?? 'Dapatkan Insight Terkurasi Langsung ke Email'}
+                    onChange={e => handleChangeSetting('blog_newsletter_title_id', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Judul Utama (English)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_newsletter_title_en'] ?? 'Get Curated Insights Directly to Your Email'}
+                    onChange={e => handleChangeSetting('blog_newsletter_title_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Deskripsi (Bahasa Indonesia)</label>
+                  <textarea
+                    rows={2}
+                    value={settings['blog_newsletter_desc_id'] ?? 'Rangkuman riset tren industri kreatif, tips bisnis, dan webinar eksklusif yang dikirim setiap hari Selasa pagi tanpa spam.'}
+                    onChange={e => handleChangeSetting('blog_newsletter_desc_id', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Deskripsi (English)</label>
+                  <textarea
+                    rows={2}
+                    value={settings['blog_newsletter_desc_en'] ?? 'Summary of creative industry trend research, business tips, and exclusive webinars sent every Tuesday morning without spam.'}
+                    onChange={e => handleChangeSetting('blog_newsletter_desc_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Placeholder Input Email (Bahasa Indonesia)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_newsletter_placeholder_id'] ?? 'Masukkan alamat email aktif...'}
+                    onChange={e => handleChangeSetting('blog_newsletter_placeholder_id', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Placeholder Input Email (English)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_newsletter_placeholder_en'] ?? 'Enter active email address...'}
+                    onChange={e => handleChangeSetting('blog_newsletter_placeholder_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Kartu 2: Kontribusi Pers / Press Release */}
+            <div className="p-5 rounded-2xl bg-indigo-900/5 border border-indigo-200/60 space-y-5">
+              <h3 className="text-sm font-extrabold text-[#0A2472] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                2. Kartu Rilis Pers ("Kontribusi Pers / Press Release")
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Penerima "Kirim Rilis Pers Sekarang"</label>
+                <input
+                  type="email"
+                  value={settings['email_destination_press_release'] ?? 'fikar@indiekraf.com'}
+                  onChange={e => handleChangeSetting('email_destination_press_release', e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  placeholder="fikar@indiekraf.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Badge (Bahasa Indonesia)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_press_badge_id'] ?? settings['blog_press_badge'] ?? settings.press_badge ?? 'KONTRIBUSI PERS / PRESS RELEASE'}
+                    onChange={e => {
+                      handleChangeSetting('blog_press_badge_id', e.target.value);
+                      handleChangeSetting('blog_press_badge', e.target.value);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Badge (English)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_press_badge_en'] ?? 'PRESS CONTRIBUTION / PRESS RELEASE'}
+                    onChange={e => handleChangeSetting('blog_press_badge_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Judul Utama (Bahasa Indonesia)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_press_title_id'] ?? settings['blog_press_title'] ?? settings.press_title ?? 'Punya Berita atau Rilis Pers Mengenai Brand / Event Anda?'}
+                    onChange={e => {
+                      handleChangeSetting('blog_press_title_id', e.target.value);
+                      handleChangeSetting('blog_press_title', e.target.value);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Judul Utama (English)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_press_title_en'] ?? 'Have News or Press Release About Your Brand / Event?'}
+                    onChange={e => handleChangeSetting('blog_press_title_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Deskripsi (Bahasa Indonesia)</label>
+                  <textarea
+                    rows={2}
+                    value={settings['blog_press_desc_id'] ?? settings['blog_press_desc'] ?? settings.press_desc ?? 'Publikasikan artikel, siaran pers, atau profil tokoh industri kreatif Anda di Indiekraf Media untuk menjangkau puluhan ribu pembaca aktif dan meningkatkan SEO kredibilitas merek Anda.'}
+                    onChange={e => {
+                      handleChangeSetting('blog_press_desc_id', e.target.value);
+                      handleChangeSetting('blog_press_desc', e.target.value);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Deskripsi (English)</label>
+                  <textarea
+                    rows={2}
+                    value={settings['blog_press_desc_en'] ?? 'Publish your article, press release, or creative industry profile on Indiekraf Media to reach tens of thousands of active readers and boost your brand\'s SEO credibility.'}
+                    onChange={e => handleChangeSetting('blog_press_desc_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Teks Tombol (Bahasa Indonesia)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_press_btn_id'] ?? settings['blog_press_btn'] ?? settings.press_btn ?? 'Kirim Rilis Pers Sekarang'}
+                    onChange={e => {
+                      handleChangeSetting('blog_press_btn_id', e.target.value);
+                      handleChangeSetting('blog_press_btn', e.target.value);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Teks Tombol (English)</label>
+                  <input
+                    type="text"
+                    value={settings['blog_press_btn_en'] ?? 'Submit Press Release Now'}
+                    onChange={e => handleChangeSetting('blog_press_btn_en', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={(e) => handleSaveSettings(e, 'Pengaturan Email Penerima & Kartu Berhasil Disimpan!')}
+                disabled={isSavingSettings}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </div>
-        </form>
+        </div>
       )}
 
       {activeTab === 'plans' && (
@@ -392,8 +594,8 @@ export default function BlogManager() {
 
                   <td className="px-4 py-4 text-xs text-slate-500">{item.author || 'Tim Indiekraf'}</td>
                   <td className="px-4 py-4">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${item.is_published ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
-                      {item.is_published ? 'Aktif' : 'Nonaktif'}
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${item.is_published ? 'bg-emerald-50 text-emerald-600 border-emerald-200/60' : 'bg-amber-50 text-amber-600 border-amber-200/60'}`}>
+                      {item.is_published ? 'Terbit' : 'Draft'}
                     </span>
                   </td>
                   <td className="px-4 py-4">
@@ -514,11 +716,14 @@ export default function BlogManager() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Status</label>
-                  <select value={editItem.is_published} onChange={e => setEditItem(p => ({ ...p, is_published: parseInt(e.target.value) }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
-                    <option value={1}>Terbit</option>
-                    <option value={0}>Draft</option>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Status Publikasi</label>
+                  <select 
+                    value={editItem.is_published ? 1 : 0} 
+                    onChange={e => setEditItem(p => ({ ...p, is_published: parseInt(e.target.value) }))}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value={1}>Terbit (Published)</option>
+                    <option value={0}>Draft (Belum Terbit)</option>
                   </select>
                 </div>
               </div>

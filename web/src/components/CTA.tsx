@@ -175,7 +175,9 @@ export default function CTA({ isCombined = false }: CTAProps) {
             >
               {/* Email Link Button */}
               <a
-                href={settings['cta_email_url'] || `mailto:${email}`}
+                href={settings['cta_email_url'] || `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`w-full sm:w-auto inline-flex items-center justify-center bg-white hover:bg-slate-50 font-bold rounded-[20px] shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 cursor-pointer px-6 py-3.5 text-sm ${textAccents[accent]}`}
                 id="cta-email-btn"
               >

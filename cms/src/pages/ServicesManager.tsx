@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Save, LayoutTemplate, Layers, Image as ImageIcon } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 
 const COLOR_THEMES = ['blue', 'purple', 'green', 'orange'];
 
 export default function ServicesManager() {
+  const { toast, confirmDialog } = useToast();
     const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
     
@@ -114,10 +116,17 @@ export default function ServicesManager() {
   };
 
   const handleDeletePillar = (idx: number) => {
-    if(!window.confirm('Hapus pilar layanan ini?')) return;
-    const pillars = getDynamicPillars();
-    pillars.splice(idx, 1);
-    handleChangeSetting('services_pillars_list', JSON.stringify(pillars));
+    confirmDialog({
+      title: 'Hapus Pilar Layanan',
+      message: 'Apakah Anda yakin ingin menghapus pilar layanan ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const pillars = getDynamicPillars();
+        pillars.splice(idx, 1);
+        handleChangeSetting('services_pillars_list', JSON.stringify(pillars));
+        toast.success('Pilar layanan berhasil dihapus!');
+      }
+    });
   };
 
   const updatePillarField = (field: string, val: any) => {
@@ -202,10 +211,17 @@ export default function ServicesManager() {
   };
 
   const handleDeleteBtn = (idx: number) => {
-    if(!window.confirm('Hapus button ini?')) return;
-    const btns = getDynamicButtons();
-    btns.splice(idx, 1);
-    handleChangeSetting('services_hero_buttons', JSON.stringify(btns));
+    confirmDialog({
+      title: 'Hapus Tombol Hero',
+      message: 'Apakah Anda yakin ingin menghapus button ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const btns = getDynamicButtons();
+        btns.splice(idx, 1);
+        handleChangeSetting('services_hero_buttons', JSON.stringify(btns));
+        toast.success('Tombol berhasil dihapus!');
+      }
+    });
   };
 
   const fetchSettings = async () => {
@@ -236,8 +252,10 @@ export default function ServicesManager() {
       });
       if (!res.ok) throw new Error('Failed to save');
       setMessage({ type: 'success', text: 'Pengaturan Header Layanan berhasil disimpan!' });
+      toast.success('Pengaturan Header Layanan berhasil disimpan!');
     } catch (err) {
       setMessage({ type: 'error', text: 'Gagal menyimpan pengaturan' });
+      toast.error('Gagal menyimpan pengaturan.');
     }
     setIsSavingSettings(false);
   };
@@ -245,20 +263,9 @@ export default function ServicesManager() {
   
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472] tracking-tight">Manajemen Layanan</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">Atur konten header dan daftar pilar layanan utama</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSaveSettings}
-          disabled={isSavingSettings}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472] tracking-tight">Manajemen Layanan</h1>
+        <p className="text-sm text-slate-500 font-medium mt-1">Atur konten header dan daftar pilar layanan utama</p>
       </div>
 
       {message && (
@@ -492,7 +499,7 @@ export default function ServicesManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSavingSettings ? 'Menyimpan...' : 'Simpan Header Layanan'}
+              {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -551,7 +558,7 @@ export default function ServicesManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSavingSettings ? 'Menyimpan...' : 'Simpan Pilar Layanan'}
+              {isSavingSettings ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>

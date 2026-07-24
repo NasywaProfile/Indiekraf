@@ -21,7 +21,6 @@ import BlogManager from '../pages/BlogManager';
 import PortfolioManager from '../pages/PortfolioManager';
 import ServicesManager from '../pages/ServicesManager';
 import PricingManager from '../pages/PricingManager';
-import SiteSettingsManager from '../pages/SiteSettingsManager';
 import CtaFooterManager from '../pages/CtaFooterManager';
 import HomeManager from '../pages/HomeManager';
 import AboutManager from '../pages/AboutManager';
@@ -45,7 +44,7 @@ const navItems: { id: AdminPage; label: string; icon: React.ReactNode; desc: str
   { id: 'portfolio', label: 'Portofolio', icon: <FolderOpen className="w-4 h-4" />, desc: 'Kelola Proyek & Karya' },
   { id: 'blog', label: 'Blog & Artikel', icon: <FileText className="w-4 h-4" />, desc: 'Kelola Berita & Artikel' },
   { id: 'contact', label: 'Hubungi Kami', icon: <Phone className="w-4 h-4" />, desc: 'Info Kontak, Alamat & Jam Kerja' },
-  { id: 'cta_footer', label: 'CTA & Footer Website', icon: <MessageSquare className="w-4 h-4" />, desc: 'Ajakan Kolaborasi, Footer & SEO (Bawah)' },
+  { id: 'cta_footer', label: 'CTA & Footer Website', icon: <MessageSquare className="w-4 h-4" />, desc: 'Ajakan Kolaborasi & Footer Website' },
 ];
 
 function renderPage(page: AdminPage) {
@@ -60,7 +59,6 @@ function renderPage(page: AdminPage) {
     case 'contact': return <ContactManager />;
     case 'navbar': return <NavbarManager />;
     case 'cta_footer': return <CtaFooterManager />;
-    case 'settings': return <CtaFooterManager />;
     default: return <NavbarManager />;
   }
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Save, Sparkles, Info, BarChart2, Award, Layers, Tag, CheckCircle2, AlertCircle, Plus, Edit2, Trash2, ArrowUp, ArrowDown, RotateCcw, Upload, X, Loader2, Newspaper, GraduationCap, Globe, ShieldCheck } from 'lucide-react';
 import ServicesManager from './ServicesManager';
 import PricingManager from './PricingManager';
+import { useToast } from '../context/ToastContext';
 
 type HomeTab = 'hero' | 'about_preview' | 'stats' | 'services_header' | 'pricing_crud' | 'why_us';
 
@@ -143,6 +144,7 @@ const defaultAboutPills: AboutPillItem[] = [
 const defaultAboutPhotos: string[] = ['/gambar.jpg'];
 
 export default function HomeManager() {
+  const { toast, confirmDialog } = useToast();
   const [activeTab, setActiveTab] = useState<HomeTab>('hero');
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [pillars, setPillars] = useState<PillarItem[]>([]);
@@ -302,8 +304,10 @@ export default function HomeManager() {
       if (!res.ok) throw new Error('Failed to save');
       setSettings(payload);
       setMessage({ type: 'success', text: 'Pengaturan halaman Beranda berhasil disimpan!' });
+      toast.success('Pengaturan halaman Beranda berhasil disimpan!');
     } catch (err) {
       setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan pengaturan Beranda' });
+      toast.error('Terjadi kesalahan saat menyimpan pengaturan Beranda');
     } finally {
       setIsSaving(false);
     }
@@ -420,7 +424,7 @@ export default function HomeManager() {
       const url = await safeUploadImage(file);
       setFormPillarImage(url);
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload foto');
+      toast.error(err.message || 'Gagal mengupload foto');
     } finally {
       setIsUploadingPillar(false);
       if (pillarFileInputRef.current) pillarFileInputRef.current.value = '';
@@ -430,7 +434,7 @@ export default function HomeManager() {
   const handleSavePillarModalItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formPillarTitle.trim() || !formPillarCategory.trim()) {
-      alert('Harap isi Judul Pilar dan Kategori!');
+      toast.warning('Harap isi Judul Pilar dan Kategori!');
       return;
     }
 
@@ -467,11 +471,17 @@ export default function HomeManager() {
   };
 
   const handleDeletePillarItem = (index: number) => {
-    if (window.confirm(`Hapus kartu pilar "${pillars[index].title}" dari Hero Beranda?`)) {
-      const updated = pillars.filter((_, idx) => idx !== index);
-      updated.forEach((item, idx) => { item.order = idx + 1; });
-      setPillars(updated);
-    }
+    confirmDialog({
+      title: 'Hapus Kartu Pilar',
+      message: `Hapus kartu pilar "${pillars[index].title}" dari Hero Beranda?`,
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const updated = pillars.filter((_, idx) => idx !== index);
+        updated.forEach((item, idx) => { item.order = idx + 1; });
+        setPillars(updated);
+        toast.success('Kartu pilar berhasil dihapus!');
+      }
+    });
   };
 
   const handleMovePillarItem = (index: number, direction: 'up' | 'down') => {
@@ -488,9 +498,15 @@ export default function HomeManager() {
   };
 
   const handleResetPillarsDefault = () => {
-    if (window.confirm('Kembalikan daftar kartu pilar Hero ke standar (Media, Studio, Academy, Insight)?')) {
-      setPillars(defaultPillars);
-    }
+    confirmDialog({
+      title: 'Reset Kartu Pilar',
+      message: 'Kembalikan daftar kartu pilar Hero ke standar (Media, Studio, Academy, Insight)?',
+      confirmText: 'Ya, Reset',
+      onConfirm: () => {
+        setPillars(defaultPillars);
+        toast.info('Daftar kartu pilar dikembalikan ke standar.');
+      }
+    });
   };
 
   const handleUploadServicePillarImg = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -524,9 +540,9 @@ export default function HomeManager() {
       };
 
       handleChange('services_pillars_list', JSON.stringify(rawPillars));
-      alert(`Gambar Pilar ${index + 1} berhasil diupload!`);
+      toast.success(`Gambar Pilar ${index + 1} berhasil diupload!`);
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload gambar pilar');
+      toast.error(err.message || 'Gagal mengupload gambar pilar');
     } finally {
       setUploadingServicePillarIdx(null);
       if (e.target) e.target.value = '';
@@ -542,8 +558,9 @@ export default function HomeManager() {
     try {
       const url = await safeUploadImage(file);
       setAboutPhotos([...aboutPhotos, url]);
+      toast.success('Foto tentang berhasil diunggah!');
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload foto');
+      toast.error(err.message || 'Gagal mengupload foto');
     } finally {
       setIsUploadingAboutPhoto(false);
       if (aboutPhotoInputRef.current) aboutPhotoInputRef.current.value = '';
@@ -559,8 +576,9 @@ export default function HomeManager() {
       const url = await safeUploadImage(file);
       handleChange('hero_icon_left', url);
       handleChange('hero.icon_left', url);
+      toast.success('Icon kiri hero berhasil diunggah!');
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload icon kiri');
+      toast.error(err.message || 'Gagal mengupload icon kiri');
     } finally {
       setIsUploadingHeroLeft(false);
       if (heroLeftInputRef.current) heroLeftInputRef.current.value = '';
@@ -576,8 +594,9 @@ export default function HomeManager() {
       const url = await safeUploadImage(file);
       handleChange('hero_icon_right', url);
       handleChange('hero.icon_right', url);
+      toast.success('Icon kanan hero berhasil diunggah!');
     } catch (err: any) {
-      alert(err.message || 'Gagal mengupload icon kanan');
+      toast.error(err.message || 'Gagal mengupload icon kanan');
     } finally {
       setIsUploadingHeroRight(false);
       if (heroRightInputRef.current) heroRightInputRef.current.value = '';
@@ -585,10 +604,16 @@ export default function HomeManager() {
   };
 
   const handleDeleteAboutPhoto = (index: number) => {
-    if (window.confirm('Hapus foto ini dari slider Sekilas Tentang Kami?')) {
-      const updated = aboutPhotos.filter((_, idx) => idx !== index);
-      setAboutPhotos(updated.length > 0 ? updated : ['/gambar.jpg']);
-    }
+    confirmDialog({
+      title: 'Hapus Foto Slider',
+      message: 'Hapus foto ini dari slider Sekilas Tentang Kami?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const updated = aboutPhotos.filter((_, idx) => idx !== index);
+        setAboutPhotos(updated.length > 0 ? updated : ['/gambar.jpg']);
+        toast.success('Foto berhasil dihapus!');
+      }
+    });
   };
 
   const handleMoveAboutPhoto = (index: number, direction: 'up' | 'down') => {
@@ -625,7 +650,7 @@ export default function HomeManager() {
   const handleSaveAboutPillModalItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formAboutPillLabelId.trim() || !formAboutPillLabelEn.trim()) {
-      alert('Harap isi Label Bahasa Indonesia dan Bahasa Inggris!');
+      toast.warning('Harap isi Label Bahasa Indonesia dan Bahasa Inggris!');
       return;
     }
     const cleanId = formAboutPillId.trim() || formAboutPillLabelId.trim().toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -653,11 +678,17 @@ export default function HomeManager() {
   };
 
   const handleDeleteAboutPillItem = (index: number) => {
-    if (window.confirm(`Hapus button "${aboutPills[index].labelId}" dari Sekilas Tentang?`)) {
-      const updated = aboutPills.filter((_, idx) => idx !== index);
-      updated.forEach((item, idx) => { item.order = idx + 1; });
-      setAboutPills(updated);
-    }
+    confirmDialog({
+      title: 'Hapus Button Keunggulan',
+      message: `Hapus button "${aboutPills[index].labelId}" dari Sekilas Tentang?`,
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const updated = aboutPills.filter((_, idx) => idx !== index);
+        updated.forEach((item, idx) => { item.order = idx + 1; });
+        setAboutPills(updated);
+        toast.success('Button berhasil dihapus!');
+      }
+    });
   };
 
   const handleMoveAboutPillItem = (index: number, direction: 'up' | 'down') => {
@@ -673,9 +704,15 @@ export default function HomeManager() {
   };
 
   const handleResetAboutPills = () => {
-    if (window.confirm('Kembalikan 4 button keunggulan ke standar?')) {
-      setAboutPills(defaultAboutPills);
-    }
+    confirmDialog({
+      title: 'Reset Button Keunggulan',
+      message: 'Kembalikan 4 button keunggulan ke standar?',
+      confirmText: 'Ya, Reset',
+      onConfirm: () => {
+        setAboutPills(defaultAboutPills);
+        toast.info('Button keunggulan dikembalikan ke standar.');
+      }
+    });
   };
 
   // ─── CRUD ACTIONS: KARTU STATISTIK (POPUP MODAL) ───────────────────────────
@@ -721,10 +758,16 @@ export default function HomeManager() {
   };
 
   const handleDeleteStatItem = (index: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus kartu statistik ini?')) {
-      const updated = statsList.filter((_, i) => i !== index);
-      setStatsList(updated);
-    }
+    confirmDialog({
+      title: 'Hapus Kartu Statistik',
+      message: 'Apakah Anda yakin ingin menghapus kartu statistik ini?',
+      confirmText: 'Ya, Hapus',
+      onConfirm: () => {
+        const updated = statsList.filter((_, i) => i !== index);
+        setStatsList(updated);
+        toast.success('Kartu statistik berhasil dihapus!');
+      }
+    });
   };
 
   const handleMoveStatItem = (index: number, direction: 'up' | 'down') => {
@@ -739,14 +782,20 @@ export default function HomeManager() {
   };
 
   const handleResetStats = () => {
-    if (window.confirm('Apakah Anda yakin ingin mengembalikan kartu statistik ke setelan bawaan (4 kartu)?')) {
-      setStatsList([
-        { id: 'visitor', iconName: 'Users', value: '75.000+', labelId: 'Pengunjung Bulanan', labelEn: 'Monthly Visitors' },
-        { id: 'follower', iconName: 'TrendingUp', value: '120.000+', labelId: 'Pengikut Media Sosial', labelEn: 'Social Media Followers' },
-        { id: 'channel', iconName: 'Globe', value: '10+', labelId: 'Saluran Media Sosial', labelEn: 'Social Media Channels' },
-        { id: 'reach', iconName: 'Eye', value: '2.5M+', labelId: 'Jangkauan & Kunjungan Bulanan', labelEn: 'Monthly Reach & Visits' },
-      ]);
-    }
+    confirmDialog({
+      title: 'Reset Kartu Statistik',
+      message: 'Apakah Anda yakin ingin mengembalikan kartu statistik ke setelan bawaan (4 kartu)?',
+      confirmText: 'Ya, Reset',
+      onConfirm: () => {
+        setStatsList([
+          { id: 'visitor', iconName: 'Users', value: '75.000+', labelId: 'Pengunjung Bulanan', labelEn: 'Monthly Visitors' },
+          { id: 'follower', iconName: 'TrendingUp', value: '120.000+', labelId: 'Pengikut Media Sosial', labelEn: 'Social Media Followers' },
+          { id: 'channel', iconName: 'Globe', value: '10+', labelId: 'Saluran Media Sosial', labelEn: 'Social Media Channels' },
+          { id: 'reach', iconName: 'Eye', value: '2.5M+', labelId: 'Jangkauan & Kunjungan Bulanan', labelEn: 'Monthly Reach & Visits' },
+        ]);
+        toast.info('Kartu statistik dikembalikan ke setelan bawaan.');
+      }
+    });
   };
 
   // ─── CRUD ACTIONS: WHY CHOOSE US FEATURES (POPUP MODAL) ─────────────────────
@@ -813,22 +862,11 @@ export default function HomeManager() {
 
   return (
     <div className="max-w-6xl space-y-8 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Halaman Beranda (Home)</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Diurutkan persis sesuai urutan tampilan dari atas ke bawah pada halaman Beranda website Indiekraf.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-        </button>
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-black text-[#0A2472]">Kelola Konten Halaman Beranda (Home)</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Diurutkan persis sesuai urutan tampilan dari atas ke bawah pada halaman Beranda website Indiekraf.
+        </p>
       </div>
 
       {message && activeTab !== 'services_crud' && activeTab !== 'pricing_crud' && (
@@ -1320,7 +1358,7 @@ export default function HomeManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Hero Beranda'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1553,9 +1591,7 @@ export default function HomeManager() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm('Kembalikan 4 button ke standar bawaan?')) setAboutPills(defaultAboutPills);
-                    }}
+                    onClick={handleResetAboutPills}
                     className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -1662,7 +1698,7 @@ export default function HomeManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Sekilas Tentang'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1886,7 +1922,7 @@ export default function HomeManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Statistik Pencapaian'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>
@@ -1968,7 +2004,7 @@ export default function HomeManager() {
                 className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-5 h-5" />
-                {isSaving ? 'Menyimpan...' : 'Simpan Header Layanan'}
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </form>
@@ -2026,15 +2062,21 @@ export default function HomeManager() {
 
               const handleDeleteCurrentPillar = () => {
                 if (pillarsList.length <= 1) {
-                  alert('Minimal harus ada 1 pilar layanan!');
+                  toast.warning('Minimal harus ada 1 pilar layanan!');
                   return;
                 }
-                if (window.confirm(`Hapus pilar layanan "${pillar.title || 'ini'}"?`)) {
-                  const rawPillars = [...pillarsList];
-                  rawPillars.splice(currentIdx, 1);
-                  handleChange('services_pillars_list', JSON.stringify(rawPillars));
-                  setActivePillarEditIdx(Math.max(0, currentIdx - 1));
-                }
+                confirmDialog({
+                  title: 'Hapus Pilar Layanan',
+                  message: `Hapus pilar layanan "${pillar.title || 'ini'}"?`,
+                  confirmText: 'Ya, Hapus',
+                  onConfirm: () => {
+                    const rawPillars = [...pillarsList];
+                    rawPillars.splice(currentIdx, 1);
+                    handleChange('services_pillars_list', JSON.stringify(rawPillars));
+                    setActivePillarEditIdx(Math.max(0, currentIdx - 1));
+                    toast.success('Pilar layanan berhasil dihapus!');
+                  }
+                });
               };
 
               // Icon mapping
@@ -2396,7 +2438,7 @@ export default function HomeManager() {
                 className="flex items-center gap-2 px-8 py-3.5 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 <Save className="w-5 h-5" />
-                {isSaving ? 'Menyimpan...' : 'Simpan Seluruh Perubahan Pilar Layanan'}
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </div>
@@ -2596,7 +2638,7 @@ export default function HomeManager() {
               className="flex items-center gap-2 px-8 py-3 bg-[#0A2472] hover:bg-blue-900 text-white rounded-xl font-bold shadow-lg transition-all disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Mengapa Memilih Kami'}
+              {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
           </div>
         </form>

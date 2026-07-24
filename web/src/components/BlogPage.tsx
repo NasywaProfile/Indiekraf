@@ -167,11 +167,16 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
       })
     })
       .then(() => {
-        alert('Email berhasil dikirim');
+        const targetEmail = settings['email_destination_newsletter'] || 'fikar@indiekraf.com';
+        const subject = encodeURIComponent('Pendaftaran Newsletter Insight Indiekraf');
+        const body = encodeURIComponent(`Halo Tim Indiekraf,\n\nSaya mendaftar untuk berlangganan Insight Terkurasi Indiekraf.\nEmail Saya: ${email}\n\nTerima kasih.`);
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetEmail)}&su=${subject}&body=${body}`, '_blank');
+
+        alert(language === 'id' ? 'Pendaftaran berhasil dikirim dan halaman Gmail telah dibuka!' : 'Subscription submitted and Gmail compose window opened!');
         setEmail('');
       })
       .catch(() => {
-        alert('Gagal mengirim email');
+        alert(language === 'id' ? 'Gagal mengirim email' : 'Failed to submit email');
       });
   };
 
@@ -205,7 +210,8 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
         if (uploadData.success) {
           imageUrl = uploadData.url;
         } else {
-          throw new Error('Upload image failed');
+          console.warn('Upload image failed:', uploadData.error);
+          alert(uploadData.error || (language === 'id' ? 'Gagal mengunggah gambar. Pastikan ukuran file < 10MB.' : 'Failed to upload image. Max 10MB.'));
         }
       }
 
@@ -222,20 +228,25 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
         }),
       });
 
-      if (response.ok) {
-        alert(language === 'id' ? 'Rilis pers berhasil dikirim!' : 'Press release submitted successfully!');
-        setPressTitle('');
-        setPressSubtitle('');
-        setPressArticle('');
-        setPressImage(null);
-        setPressImagePreview('');
-        setIsPressModalOpen(false);
-      } else {
-        alert(language === 'id' ? 'Gagal mengirim rilis pers' : 'Failed to submit press release');
-      }
-    } catch (error) {
+      const targetEmail = settings['email_destination_press_release'] || 'fikar@indiekraf.com';
+      const subject = encodeURIComponent(`[RILIS PERS] ${pressTitle}`);
+      
+      const imageText = `\n\n📷 LAMPIRAN FOTO / GAMBAR:\n(Silakan lampirkan foto/gambar pendukung Rilis Pers Anda secara langsung melalui ikon tombol klip / paperclip 📎 di bagian bawah jendela Gmail ini)`;
+      
+      const body = encodeURIComponent(`Halo Tim Indiekraf,\n\nBerikut pengajuan Rilis Pers / Berita dari kami:\n\n• Judul: ${pressTitle}\n• Sub Judul: ${pressSubtitle}${imageText}\n\nIsi Artikel:\n${pressArticle}\n\nTerima kasih.`);
+      
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetEmail)}&su=${subject}&body=${body}`, '_blank');
+
+      alert(language === 'id' ? 'Rilis pers berhasil dikirim dan halaman Gmail telah dibuka!' : 'Press release submitted and Gmail compose window opened!');
+      setPressTitle('');
+      setPressSubtitle('');
+      setPressArticle('');
+      setPressImage(null);
+      setPressImagePreview('');
+      setIsPressModalOpen(false);
+    } catch (error: any) {
       console.error(error);
-      alert(language === 'id' ? 'Terjadi kesalahan sistem' : 'A system error occurred');
+      alert(error?.message || (language === 'id' ? 'Terjadi kesalahan sistem' : 'A system error occurred'));
     } finally {
       setIsSubmitting(false);
     }
@@ -562,20 +573,28 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
           >
             <div>
               <div className="inline-flex items-center px-3 py-1 rounded-[10px] bg-blue-50 text-[#0A2472] text-[10px] font-bold tracking-widest border border-blue-100 mb-6 uppercase">
-                {ct.newsletterBadge}
+                {language === 'id' 
+                  ? (settings['blog_newsletter_badge_id'] || ct.newsletterBadge || 'KIRIM INSIGHT')
+                  : (settings['blog_newsletter_badge_en'] || ct.newsletterBadge || 'SEND INSIGHT')}
               </div>
               <h2 className="text-2xl font-sans font-extrabold text-[#0A2472] leading-tight mb-6">
-                {ct.newsletterTitle}
+                {language === 'id' 
+                  ? (settings['blog_newsletter_title_id'] || ct.newsletterTitle || 'Dapatkan Insight Terkurasi Langsung ke Email')
+                  : (settings['blog_newsletter_title_en'] || ct.newsletterTitle || 'Get Curated Insights Directly to Your Email')}
               </h2>
               <p className="text-xs text-slate-500 leading-relaxed font-medium mb-10">
-                Rangkuman riset tren industri kreatif, tips bisnis, dan webinar eksklusif yang dikirim setiap hari Selasa pagi tanpa spam.
+                {language === 'id' 
+                  ? (settings['blog_newsletter_desc_id'] || 'Rangkuman riset tren industri kreatif, tips bisnis, dan webinar eksklusif yang dikirim setiap hari Selasa pagi tanpa spam.')
+                  : (settings['blog_newsletter_desc_en'] || 'Summary of creative industry trend research, business tips, and exclusive webinars sent every Tuesday morning without spam.')}
               </p>
             </div>
 
             <div className="relative group">
               <input
                 type="email"
-                placeholder={ct.emailPlaceholder}
+                placeholder={language === 'id'
+                  ? (settings['blog_newsletter_placeholder_id'] || ct.emailPlaceholder || 'Masukkan alamat email aktif...')
+                  : (settings['blog_newsletter_placeholder_en'] || ct.emailPlaceholder || 'Enter active email address...')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-6 pr-14 py-4 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-medium text-[#0A2472] focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#0A2472] transition-all" />
@@ -599,22 +618,32 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
 
             <div className="relative z-10">
               <div className="inline-flex items-center px-3 py-1 rounded-[10px] bg-white/10 text-white text-[10px] font-bold tracking-widest border border-white/20 mb-6 uppercase">
-                {settings.press_badge || ct.pressBadge}
+                {language === 'id'
+                  ? (settings['blog_press_badge_id'] || settings['blog_press_badge'] || settings.press_badge || ct.pressBadge || 'KONTRIBUSI PERS / PRESS RELEASE')
+                  : (settings['blog_press_badge_en'] || settings['blog_press_badge'] || settings.press_badge || ct.pressBadge || 'PRESS CONTRIBUTION / PRESS RELEASE')}
               </div>
               <h2 className="text-2xl font-sans font-extrabold leading-tight mb-6">
-                {settings.press_title || ct.pressTitle}
+                {language === 'id'
+                  ? (settings['blog_press_title_id'] || settings['blog_press_title'] || settings.press_title || ct.pressTitle || 'Punya Berita atau Rilis Pers Mengenai Brand / Event Anda?')
+                  : (settings['blog_press_title_en'] || settings['blog_press_title'] || settings.press_title || ct.pressTitle || 'Have News or Press Release About Your Brand / Event?')}
               </h2>
               <p className="text-xs text-blue-100/70 leading-relaxed font-medium mb-10">
-                {settings.press_desc || ct.pressDesc}
+                {language === 'id'
+                  ? (settings['blog_press_desc_id'] || settings['blog_press_desc'] || settings.press_desc || ct.pressDesc || 'Publikasikan artikel, siaran pers, atau profil tokoh industri kreatif Anda di Indiekraf Media untuk menjangkau puluhan ribu pembaca aktif dan meningkatkan SEO kredibilitas merek Anda.')
+                  : (settings['blog_press_desc_en'] || settings['blog_press_desc'] || settings.press_desc || ct.pressDesc || 'Publish your article, press release, or creative industry profile on Indiekraf Media to reach tens of thousands of active readers and boost your brand\'s SEO credibility.')}
               </p>
             </div>
 
-            <button 
-              onClick={() => setIsPressModalOpen(true)}
-              className="relative z-10 w-full py-4 bg-white text-[#0A2472] text-xs font-extrabold rounded-[10px] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            <a 
+              href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings['email_destination_press_release'] || 'fikar@indiekraf.com')}&su=${encodeURIComponent(language === 'id' ? '[RILIS PERS] Pengajuan Rilis Pers / Berita' : '[PRESS RELEASE] Press Release Submission')}&body=${encodeURIComponent(language === 'id' ? `Halo Tim Indiekraf,\n\nBerikut pengajuan Rilis Pers / Berita dari kami:\n\n• Judul: [Judul Rilis Pers]\n• Sub Judul: [Sub Judul]\n\n📷 LAMPIRAN FOTO / GAMBAR:\n(Silakan lampirkan foto/gambar pendukung Rilis Pers Anda secara langsung melalui ikon tombol klip / paperclip 📎 di bagian bawah jendela Gmail ini)\n\nIsi Artikel:\n[Isi artikel lengkap...]\n\nTerima kasih.` : `Halo Tim Indiekraf,\n\nHere is our Press Release submission:\n\n• Title: [Press Release Title]\n• Subtitle: [Subtitle / Brief Summary]\n\n📷 ATTACHED PHOTO / IMAGE:\n(Please attach your supporting photo/image directly via the paperclip 📎 button at the bottom of this Gmail window)\n\nArticle Content:\n[Full article content...]\n\nThank you.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 w-full py-4 bg-white text-[#0A2472] text-xs font-extrabold rounded-[10px] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center block"
             >
-              {settings.press_btn || ct.pressBtn}
-            </button>
+              {language === 'id'
+                ? (settings['blog_press_btn_id'] || settings['blog_press_btn'] || settings.press_btn || ct.pressBtn || 'Kirim Rilis Pers Sekarang')
+                : (settings['blog_press_btn_en'] || settings['blog_press_btn'] || settings.press_btn || ct.pressBtn || 'Submit Press Release Now')}
+            </a>
           </motion.div>
         </div>
       </section>
@@ -686,6 +715,11 @@ export default function BlogPage({ onBackToHome, onScrollToContact }: BlogPagePr
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   </label>
                 </div>
+                <p className="text-[10px] text-indigo-600 font-semibold mt-1">
+                  {language === 'id' 
+                    ? '💡 Catatan: File foto juga dapat dilampirkan langsung di Gmail melalui tombol paperclip.' 
+                    : '💡 Note: Image file can also be attached directly in Gmail via the paperclip icon.'}
+                </p>
               </div>
             </div>
 

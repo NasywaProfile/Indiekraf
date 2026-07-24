@@ -227,7 +227,14 @@ export default function Footer({ onScrollTo, isCombined = false }: FooterProps) 
               </h4>
               <ul className="space-y-2.5 text-sm font-medium text-slate-500 text-left">
                 <li>
-                  <span className="text-slate-500">Email: {footerContactEmail}</span>
+                  <a
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(footerContactEmail)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-500 hover:text-blue-600 transition-colors"
+                  >
+                    Email: {footerContactEmail}
+                  </a>
                 </li>
                 <li>
                   <span className="text-slate-500">WhatsApp: {footerContactWa}</span>
